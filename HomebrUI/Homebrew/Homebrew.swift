@@ -1,6 +1,14 @@
 import Foundation
 import Combine
 
+struct Package: Equatable {
+  var name: String
+}
+
+extension Package: Identifiable {
+  var id: String { name }
+}
+
 struct Homebrew {
   struct Configuration {
     var executablePath: String
@@ -12,8 +20,12 @@ struct Homebrew {
     self.configuration = configuration
   }
 
-  func list() -> AnyPublisher<String, ProcessTaskError> {
+  func list() -> AnyPublisher<[Package], ProcessTaskError> {
     Process.runPublisher(for: URL(fileURLWithPath: configuration.executablePath), arguments: ["list"])
+      .map { output in
+        output.split(separator: "\n").map { Package(name: String($0)) }
+      }
+      .eraseToAnyPublisher()
   }
 }
 

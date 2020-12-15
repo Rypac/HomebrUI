@@ -5,7 +5,7 @@ class ContentViewModel: ObservableObject {
   enum State: Equatable {
     case idle
     case loading
-    case loadedPackages(String)
+    case loadedPackages([Package])
     case failedToLoad(String)
   }
 
@@ -25,6 +25,7 @@ class ContentViewModel: ObservableObject {
           }
           .prepend(.loading)
       }
+      .receive(on: DispatchQueue.main)
       .assign(to: &$state)
   }
 
@@ -38,23 +39,21 @@ struct ContentView: View {
 
   var body: some View {
     VStack {
-      Text(viewModel.state.status)
+      switch viewModel.state {
+      case .idle, .loading:
+        Text("Loading…")
+      case .loadedPackages(let packages):
+        List(packages) { package in
+          Text(package.name)
+        }
+      case .failedToLoad(let error):
+        Text(error)
+      }
     }
     .padding()
-    .frame(width: 500, height: 400, alignment: .center)
+    .frame(minWidth: 200, minHeight: 100)
     .onAppear {
       viewModel.loadPackages()
-    }
-  }
-}
-
-private extension ContentViewModel.State {
-  var status: String {
-    switch self {
-    case .idle: return "Idle"
-    case .loading: return "Loading…"
-    case .loadedPackages(let output): return output
-    case .failedToLoad(let error): return error
     }
   }
 }
