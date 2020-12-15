@@ -44,7 +44,12 @@ struct ContentView: View {
         Text("Loading…")
       case .loadedPackages(let packages):
         List(packages) { package in
-          Text(package.name)
+          HStack {
+            Text(package.name)
+            Spacer()
+            Text(package.version)
+              .foregroundColor(.secondary)
+          }
         }
       case .failedToLoad(let error):
         Text(error)

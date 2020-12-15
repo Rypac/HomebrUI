@@ -3,6 +3,7 @@ import Combine
 
 struct Package: Equatable {
   var name: String
+  var version: String
 }
 
 extension Package: Identifiable {
@@ -21,9 +22,16 @@ struct Homebrew {
   }
 
   func list() -> AnyPublisher<[Package], ProcessTaskError> {
-    Process.runPublisher(for: URL(fileURLWithPath: configuration.executablePath), arguments: ["list"])
+    Process.runPublisher(for: URL(fileURLWithPath: configuration.executablePath), arguments: ["list", "--versions"])
       .map { output in
-        output.split(separator: "\n").map { Package(name: String($0)) }
+        output.split(separator: "\n").map { nameAndVersion in
+          let splitNameAndVersion = nameAndVersion.split(separator: " ")
+          if splitNameAndVersion.count == 2 {
+            return Package(name: String(splitNameAndVersion[0]), version: String(splitNameAndVersion[1]))
+          } else {
+            return Package(name: String(nameAndVersion), version: "")
+          }
+        }
       }
       .eraseToAnyPublisher()
   }
