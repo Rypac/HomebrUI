@@ -11,6 +11,8 @@
 		94B042982589666B00222EEF /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94B042972589666B00222EEF /* ContentView.swift */; };
 		94B0429A2589666C00222EEF /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 94B042992589666C00222EEF /* Assets.xcassets */; };
 		94B0429D2589666C00222EEF /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 94B0429C2589666C00222EEF /* Preview Assets.xcassets */; };
+		94B042A82589672700222EEF /* Homebrew.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94B042A72589672700222EEF /* Homebrew.swift */; };
+		94B042AB2589708500222EEF /* Process+Combine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94B042AA2589708500222EEF /* Process+Combine.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -21,6 +23,8 @@
 		94B0429C2589666C00222EEF /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		94B0429E2589666C00222EEF /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		94B0429F2589666C00222EEF /* HomebrUI.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = HomebrUI.entitlements; sourceTree = "<group>"; };
+		94B042A72589672700222EEF /* Homebrew.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Homebrew.swift; sourceTree = "<group>"; };
+		94B042AA2589708500222EEF /* Process+Combine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Process+Combine.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -53,6 +57,7 @@
 		94B042942589666B00222EEF /* HomebrUI */ = {
 			isa = PBXGroup;
 			children = (
+				94B042A62589671600222EEF /* Homebrew */,
 				94B042952589666B00222EEF /* HomebrUIApp.swift */,
 				94B042972589666B00222EEF /* ContentView.swift */,
 				94B042992589666C00222EEF /* Assets.xcassets */,
@@ -69,6 +74,15 @@
 				94B0429C2589666C00222EEF /* Preview Assets.xcassets */,
 			);
 			path = "Preview Content";
+			sourceTree = "<group>";
+		};
+		94B042A62589671600222EEF /* Homebrew */ = {
+			isa = PBXGroup;
+			children = (
+				94B042A72589672700222EEF /* Homebrew.swift */,
+				94B042AA2589708500222EEF /* Process+Combine.swift */,
+			);
+			path = Homebrew;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -141,7 +155,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				94B042982589666B00222EEF /* ContentView.swift in Sources */,
+				94B042A82589672700222EEF /* Homebrew.swift in Sources */,
 				94B042962589666B00222EEF /* HomebrUIApp.swift in Sources */,
+				94B042AB2589708500222EEF /* Process+Combine.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
