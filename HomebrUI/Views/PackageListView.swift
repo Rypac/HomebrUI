@@ -7,12 +7,17 @@ class PackageListViewModel: ObservableObject {
     case loaded([Package])
   }
 
+  @Published private(set) var isRefreshing: Bool = false
   @Published private(set) var state: State = .loading
   @Input var query: String = ""
 
   private let triggerLoad = PassthroughSubject<Bool, Never>()
 
   init(repository: PackageRepository) {
+    repository.refreshing
+      .receive(on: DispatchQueue.main)
+      .assign(to: &$isRefreshing)
+
     Publishers
       .CombineLatest(repository.packages, $query.removeDuplicates())
       .map { packages, query in
@@ -36,7 +41,7 @@ struct PackageListView: View {
     VStack {
       switch viewModel.state {
       case .loading:
-        Text("Loading…")
+        EmptyView()
       case .loaded(let packages):
         TextField("Filter", text: $viewModel.query)
           .textFieldStyle(RoundedBorderTextFieldStyle())
@@ -51,6 +56,16 @@ struct PackageListView: View {
             }
           }
         }
+      }
+      if viewModel.isRefreshing {
+        Spacer()
+        HStack {
+          Text("Refreshing")
+            .font(.callout)
+          Spacer()
+          ProgressView()
+        }
+          .padding()
       }
     }
   }
