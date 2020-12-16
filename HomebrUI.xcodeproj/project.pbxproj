@@ -8,19 +8,20 @@
 
 /* Begin PBXBuildFile section */
 		94B042962589666B00222EEF /* HomebrUIApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94B042952589666B00222EEF /* HomebrUIApp.swift */; };
-		94B042982589666B00222EEF /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94B042972589666B00222EEF /* ContentView.swift */; };
 		94B0429A2589666C00222EEF /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 94B042992589666C00222EEF /* Assets.xcassets */; };
 		94B0429D2589666C00222EEF /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 94B0429C2589666C00222EEF /* Preview Assets.xcassets */; };
 		94B042A82589672700222EEF /* Homebrew.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94B042A72589672700222EEF /* Homebrew.swift */; };
 		94B042AB2589708500222EEF /* Process+Combine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94B042AA2589708500222EEF /* Process+Combine.swift */; };
 		94E4A247258980C400CC1C7D /* HomebrewModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94E4A246258980C400CC1C7D /* HomebrewModels.swift */; };
 		94E4A24A2589A3D400CC1C7D /* PackageRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94E4A2492589A3D400CC1C7D /* PackageRepository.swift */; };
+		94E4A24E2589BD1F00CC1C7D /* PackageListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94E4A24D2589BD1F00CC1C7D /* PackageListView.swift */; };
+		94E4A2522589BD3A00CC1C7D /* Input.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94E4A2512589BD3A00CC1C7D /* Input.swift */; };
+		94E4A2562589BD9600CC1C7D /* PackageDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94E4A2552589BD9600CC1C7D /* PackageDetailView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		94B042922589666B00222EEF /* HomebrUI.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = HomebrUI.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		94B042952589666B00222EEF /* HomebrUIApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomebrUIApp.swift; sourceTree = "<group>"; };
-		94B042972589666B00222EEF /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		94B042992589666C00222EEF /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		94B0429C2589666C00222EEF /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		94B0429E2589666C00222EEF /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -29,6 +30,9 @@
 		94B042AA2589708500222EEF /* Process+Combine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Process+Combine.swift"; sourceTree = "<group>"; };
 		94E4A246258980C400CC1C7D /* HomebrewModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomebrewModels.swift; sourceTree = "<group>"; };
 		94E4A2492589A3D400CC1C7D /* PackageRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PackageRepository.swift; sourceTree = "<group>"; };
+		94E4A24D2589BD1F00CC1C7D /* PackageListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PackageListView.swift; sourceTree = "<group>"; };
+		94E4A2512589BD3A00CC1C7D /* Input.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Input.swift; sourceTree = "<group>"; };
+		94E4A2552589BD9600CC1C7D /* PackageDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PackageDetailView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -61,9 +65,9 @@
 		94B042942589666B00222EEF /* HomebrUI */ = {
 			isa = PBXGroup;
 			children = (
+				94E4A24C2589BD1400CC1C7D /* Views */,
 				94B042A62589671600222EEF /* Homebrew */,
 				94B042952589666B00222EEF /* HomebrUIApp.swift */,
-				94B042972589666B00222EEF /* ContentView.swift */,
 				94B042992589666C00222EEF /* Assets.xcassets */,
 				94B0429E2589666C00222EEF /* Info.plist */,
 				94B0429F2589666C00222EEF /* HomebrUI.entitlements */,
@@ -89,6 +93,16 @@
 				94E4A2492589A3D400CC1C7D /* PackageRepository.swift */,
 			);
 			path = Homebrew;
+			sourceTree = "<group>";
+		};
+		94E4A24C2589BD1400CC1C7D /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				94E4A2512589BD3A00CC1C7D /* Input.swift */,
+				94E4A2552589BD9600CC1C7D /* PackageDetailView.swift */,
+				94E4A24D2589BD1F00CC1C7D /* PackageListView.swift */,
+			);
+			path = Views;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -161,10 +175,12 @@
 			buildActionMask = 2147483647;
 			files = (
 				94E4A24A2589A3D400CC1C7D /* PackageRepository.swift in Sources */,
-				94B042982589666B00222EEF /* ContentView.swift in Sources */,
+				94E4A24E2589BD1F00CC1C7D /* PackageListView.swift in Sources */,
+				94E4A2562589BD9600CC1C7D /* PackageDetailView.swift in Sources */,
 				94E4A247258980C400CC1C7D /* HomebrewModels.swift in Sources */,
 				94B042A82589672700222EEF /* Homebrew.swift in Sources */,
 				94B042962589666B00222EEF /* HomebrUIApp.swift in Sources */,
+				94E4A2522589BD3A00CC1C7D /* Input.swift in Sources */,
 				94B042AB2589708500222EEF /* Process+Combine.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
