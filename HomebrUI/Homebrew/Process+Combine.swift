@@ -3,6 +3,7 @@ import Combine
 
 enum ProcessTaskError: Error {
   case failedToRun(reason: Error)
+  case failedTransformingOutput(reason: Error)
   case terminatedWithoutCompletion
   case terminated(status: Int, output: String)
 }
@@ -12,6 +13,8 @@ extension ProcessTaskError: LocalizedError {
     switch self {
     case let .failedToRun(reason):
       return "Failed to run: \(reason.localizedDescription)"
+    case let .failedTransformingOutput(reason):
+      return "Failed to transform output: \(reason.localizedDescription)"
     case .terminatedWithoutCompletion:
       return "Terminated without completion"
     case let .terminated(status, output):
@@ -21,12 +24,19 @@ extension ProcessTaskError: LocalizedError {
 }
 
 extension Process {
-  static func runPublisher(for url: URL, arguments: [String]) -> AnyPublisher<String, ProcessTaskError> {
+  static func runPublisher<Output>(
+    for url: URL,
+    arguments: [String],
+    qualityOfService: QualityOfService = .default,
+    queue: DispatchQueue = .global(qos: .background),
+    transform: @escaping (Data) throws -> Output
+  ) -> AnyPublisher<Output, ProcessTaskError> {
     Deferred {
-      Future<String, ProcessTaskError> { completion in
+      Future { completion in
         let task = Process()
         task.executableURL = url
         task.arguments = arguments
+        task.qualityOfService = qualityOfService
 
         let outputPipe = Pipe()
         let errorPipe = Pipe()
@@ -34,34 +44,33 @@ extension Process {
         task.standardOutput = outputPipe
         task.standardError = errorPipe
 
-        task.terminationHandler = { process in
-          guard !process.isRunning else {
-            completion(.failure(.terminatedWithoutCompletion))
-            return
-          }
-
-          let status = Int(process.terminationStatus)
-
-          if status == 0 {
-            completion(.success(outputPipe.readOutput()))
-          } else {
-            completion(.failure(.terminated(status: status, output: errorPipe.readOutput())))
+        let channel = DispatchIO(type: .stream, fileDescriptor: outputPipe.fileHandleForReading.fileDescriptor, queue: queue) { errno in
+          guard errno == 0 else {
+            fatalError("Error reading from channel")
           }
         }
 
-        do {
-          try task.run()
-        } catch {
-          completion(.failure(.failedToRun(reason: error)))
+        var collectedData = Data()
+
+        channel.read(offset: 0, length: Int.max, queue: queue) { closed, dispatchData, error in
+          if let data = dispatchData, !data.isEmpty {
+            collectedData.append(contentsOf: data)
+          }
+
+          if closed {
+            channel.close()
+
+            do {
+              completion(.success(try transform(collectedData)))
+            } catch {
+              completion(.failure(.failedTransformingOutput(reason: error)))
+            }
+          }
         }
+
+        task.launch()
       }
     }
     .eraseToAnyPublisher()
-  }
-}
-
-private extension Pipe {
-  func readOutput() -> String {
-    String(decoding: fileHandleForReading.readDataToEndOfFile(), as: UTF8.self)
   }
 }

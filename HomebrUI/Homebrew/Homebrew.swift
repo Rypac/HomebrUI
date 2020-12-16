@@ -22,18 +22,22 @@ struct Homebrew {
   }
 
   func list() -> AnyPublisher<[Package], ProcessTaskError> {
-    Process.runPublisher(for: URL(fileURLWithPath: configuration.executablePath), arguments: ["list", "--versions"])
-      .map { output in
-        output.split(separator: "\n").map { nameAndVersion in
-          let splitNameAndVersion = nameAndVersion.split(separator: " ")
-          if splitNameAndVersion.count == 2 {
-            return Package(name: String(splitNameAndVersion[0]), version: String(splitNameAndVersion[1]))
-          } else {
-            return Package(name: String(nameAndVersion), version: "")
-          }
+    Process.runPublisher(
+      for: URL(fileURLWithPath: configuration.executablePath),
+      arguments: ["info", "--json=v2", "--installed"]
+    ) { data in
+      let info = try JSONDecoder().decode(HomebrewInfo.self, from: data)
+      return info.formulae.compactMap { formulae in
+        guard let installedPackage = formulae.installed.first, installedPackage.installedOnRequest else {
+          return nil
         }
+        return Package(
+          name: formulae.name,
+          version: installedPackage.version
+        )
       }
-      .eraseToAnyPublisher()
+    }
+    .eraseToAnyPublisher()
   }
 }
 
