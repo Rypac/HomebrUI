@@ -12,11 +12,12 @@ struct Homebrew {
     self.configuration = configuration
   }
 
-  func list() -> AnyPublisher<HomebrewInfo, ProcessTaskError> {
+  func list() -> AnyPublisher<HomebrewInfo, Error> {
     Process.runPublisher(
       for: URL(fileURLWithPath: configuration.executablePath),
       arguments: ["info", "--json=v2", "--installed"]
-    ) { data in
+    )
+    .tryMap { data in
       try JSONDecoder().decode(HomebrewInfo.self, from: data)
     }
     .eraseToAnyPublisher()

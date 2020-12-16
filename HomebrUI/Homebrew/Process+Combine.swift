@@ -1,36 +1,24 @@
 import Foundation
 import Combine
 
-enum ProcessTaskError: Error {
-  case failedToRun(reason: Error)
-  case failedTransformingOutput(reason: Error)
-  case terminatedWithoutCompletion
-  case terminated(status: Int, output: String)
+struct ProcessError: Error {
+  let status: Int
+  let data: Data
 }
 
-extension ProcessTaskError: LocalizedError {
+extension ProcessError: LocalizedError {
   var errorDescription: String? {
-    switch self {
-    case let .failedToRun(reason):
-      return "Failed to run: \(reason.localizedDescription)"
-    case let .failedTransformingOutput(reason):
-      return "Failed to transform output: \(reason.localizedDescription)"
-    case .terminatedWithoutCompletion:
-      return "Terminated without completion"
-    case let .terminated(status, output):
-      return "Completed with status \(status): \(output)"
-    }
+    "Completed with status \(status): \(data)"
   }
 }
 
 extension Process {
-  static func runPublisher<Output>(
+  static func runPublisher(
     for url: URL,
     arguments: [String],
     qualityOfService: QualityOfService = .default,
-    queue: DispatchQueue = .global(qos: .background),
-    transform: @escaping (Data) throws -> Output
-  ) -> AnyPublisher<Output, ProcessTaskError> {
+    queue: DispatchQueue = .global(qos: .background)
+  ) -> AnyPublisher<Data, ProcessError> {
     Deferred {
       Future { completion in
         let task = Process()
@@ -46,7 +34,8 @@ extension Process {
 
         let channel = DispatchIO(type: .stream, fileDescriptor: outputPipe.fileHandleForReading.fileDescriptor, queue: queue) { errno in
           guard errno == 0 else {
-            fatalError("Error reading from channel")
+            completion(.failure(ProcessError(status: Int(errno), data: Data())))
+            return
           }
         }
 
@@ -60,10 +49,10 @@ extension Process {
           if closed {
             channel.close()
 
-            do {
-              completion(.success(try transform(collectedData)))
-            } catch {
-              completion(.failure(.failedTransformingOutput(reason: error)))
+            if error == 0 {
+              completion(.success(collectedData))
+            } else {
+              completion(.failure(ProcessError(status: Int(error), data: collectedData)))
             }
           }
         }
