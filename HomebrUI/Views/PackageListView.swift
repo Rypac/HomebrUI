@@ -5,6 +5,7 @@ class PackageListViewModel: ObservableObject {
   struct Environment {
     var packages: AnyPublisher<[Package], Never>
     var isRefreshing: AnyPublisher<Bool, Never>
+    var uninstall: (Package) -> Void
   }
 
   @Published private(set) var isRefreshing: Bool = false
@@ -12,7 +13,11 @@ class PackageListViewModel: ObservableObject {
 
   @Input var query: String = ""
 
+  private let environment: Environment
+
   init(environment: Environment) {
+    self.environment = environment
+
     environment.isRefreshing
       .receive(on: DispatchQueue.main)
       .assign(to: &$isRefreshing)
@@ -30,11 +35,21 @@ class PackageListViewModel: ObservableObject {
       .receive(on: DispatchQueue.main)
       .assign(to: &$packages)
   }
+
+  func uninstall(package: Package) {
+    environment.uninstall(package)
+  }
 }
 
 extension PackageListViewModel {
   convenience init(repository: PackageRepository) {
-    self.init(environment: Environment(packages: repository.packages, isRefreshing: repository.refreshing))
+    self.init(
+      environment: Environment(
+        packages: repository.packages,
+        isRefreshing: repository.refreshing,
+        uninstall: repository.uninstall
+      )
+    )
   }
 }
 
@@ -55,6 +70,11 @@ struct PackageListView: View {
               .foregroundColor(.secondary)
           }
         }
+        .contextMenu {
+          Button("Delete") {
+            viewModel.uninstall(package: package)
+          }
+        }
       }
       if viewModel.isRefreshing {
         Spacer()
@@ -64,7 +84,7 @@ struct PackageListView: View {
           Spacer()
           ProgressView()
         }
-          .padding()
+        .padding()
       }
     }
   }
