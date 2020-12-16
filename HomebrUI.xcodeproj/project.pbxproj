@@ -18,6 +18,7 @@
 		94E4A2522589BD3A00CC1C7D /* Input.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94E4A2512589BD3A00CC1C7D /* Input.swift */; };
 		94E4A2562589BD9600CC1C7D /* PackageDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94E4A2552589BD9600CC1C7D /* PackageDetailView.swift */; };
 		94E4A25C2589C9A500CC1C7D /* Package.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94E4A25B2589C9A500CC1C7D /* Package.swift */; };
+		94E615A6258AA7BD000D432C /* HomebrewCommandQueue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94E615A5258AA7BD000D432C /* HomebrewCommandQueue.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -35,6 +36,7 @@
 		94E4A2512589BD3A00CC1C7D /* Input.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Input.swift; sourceTree = "<group>"; };
 		94E4A2552589BD9600CC1C7D /* PackageDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PackageDetailView.swift; sourceTree = "<group>"; };
 		94E4A25B2589C9A500CC1C7D /* Package.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Package.swift; sourceTree = "<group>"; };
+		94E615A5258AA7BD000D432C /* HomebrewCommandQueue.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomebrewCommandQueue.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -93,6 +95,7 @@
 				94B042A72589672700222EEF /* Homebrew.swift */,
 				94B042AA2589708500222EEF /* Process+Combine.swift */,
 				94E4A246258980C400CC1C7D /* HomebrewModels.swift */,
+				94E615A5258AA7BD000D432C /* HomebrewCommandQueue.swift */,
 			);
 			path = Homebrew;
 			sourceTree = "<group>";
@@ -185,6 +188,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				94E615A6258AA7BD000D432C /* HomebrewCommandQueue.swift in Sources */,
 				94E4A24A2589A3D400CC1C7D /* PackageRepository.swift in Sources */,
 				94E4A24E2589BD1F00CC1C7D /* PackageListView.swift in Sources */,
 				94E4A2562589BD9600CC1C7D /* PackageDetailView.swift in Sources */,

@@ -6,30 +6,27 @@ struct Homebrew {
     var executablePath: String
   }
 
-  private let configuration: Configuration
+  private let commandQueue: HomebrewCommandQueue
 
   init(configuration: Configuration = .default) {
-    self.configuration = configuration
+    self.commandQueue = HomebrewCommandQueue(configuration: configuration)
   }
 
   func list() -> AnyPublisher<HomebrewInfo, Error> {
-    Process.runPublisher(
-      for: URL(fileURLWithPath: configuration.executablePath),
-      arguments: ["info", "--json=v2", "--installed"]
-    )
-    .tryMap { result in
-      guard result.status == 0 else {
-        throw HomebrewError(status: result.status, output: result.standardError)
+    commandQueue.run(.list)
+      .tryMap { result in
+        guard result.status == 0 else {
+          throw HomebrewError(status: result.status, output: result.standardError)
+        }
+        return try JSONDecoder().decode(HomebrewInfo.self, from: result.standardOutput)
       }
-      return try JSONDecoder().decode(HomebrewInfo.self, from: result.standardOutput)
-    }
-    .catch { error -> AnyPublisher<HomebrewInfo, Error> in
-      print(error.localizedDescription)
-      return Just(HomebrewInfo(formulae: [], casks: []))
-        .setFailureType(to: Error.self)
-        .eraseToAnyPublisher()
-    }
-    .eraseToAnyPublisher()
+      .catch { error -> AnyPublisher<HomebrewInfo, Error> in
+        print(error.localizedDescription)
+        return Just(HomebrewInfo(formulae: [], casks: []))
+          .setFailureType(to: Error.self)
+          .eraseToAnyPublisher()
+      }
+      .eraseToAnyPublisher()
   }
 }
 
