@@ -20,11 +20,16 @@ struct Homebrew {
         }
         return try JSONDecoder().decode(HomebrewInfo.self, from: result.standardOutput)
       }
-      .catch { error -> AnyPublisher<HomebrewInfo, Error> in
-        print(error.localizedDescription)
-        return Just(HomebrewInfo(formulae: [], casks: []))
-          .setFailureType(to: Error.self)
-          .eraseToAnyPublisher()
+      .eraseToAnyPublisher()
+  }
+
+  func uninstallFormulae(name: String) -> AnyPublisher<String, Error> {
+    commandQueue.run(.uninstall(name))
+      .tryMap { result in
+        guard result.status == 0 else {
+          throw HomebrewError(status: result.status, output: result.standardError)
+        }
+        return String(decoding: result.standardOutput, as: UTF8.self)
       }
       .eraseToAnyPublisher()
   }

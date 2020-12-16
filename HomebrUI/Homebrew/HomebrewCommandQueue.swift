@@ -5,6 +5,7 @@ enum HomebrewCommand {
   case list
   case update
   case upgrade(HomebrewUpgradeStrategy)
+  case uninstall(String)
 }
 
 enum HomebrewUpgradeStrategy {
@@ -21,8 +22,10 @@ extension HomebrewCommand {
       return ["update"]
     case .upgrade(.all):
       return ["upgrade"]
-    case .upgrade(.only(let package)):
-      return ["upgrade", package]
+    case .upgrade(.only(let formulae)):
+      return ["upgrade", formulae]
+    case .uninstall(let formulae):
+      return ["uninstall", formulae]
     }
   }
 }
