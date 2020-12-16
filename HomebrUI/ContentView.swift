@@ -39,11 +39,13 @@ struct PackageView: View {
         Text("Loading…")
       case .loadedPackages(let packages):
         List(packages) { package in
-          HStack {
-            Text(package.name)
-            Spacer()
-            Text(package.version)
-              .foregroundColor(.secondary)
+          NavigationLink(destination: PackageDetailView(package: package)) {
+            HStack {
+              Text(package.name)
+              Spacer()
+              Text(package.version)
+                .foregroundColor(.secondary)
+            }
           }
         }
       case .failedToLoad(let error):
@@ -53,6 +55,25 @@ struct PackageView: View {
     .onAppear {
       viewModel.loadPackages()
     }
+  }
+}
+
+struct PackageDetailView: View {
+  let package: Package
+
+  var body: some View {
+    VStack {
+      HStack {
+        Text(package.name)
+          .font(.title)
+        Spacer()
+        Text(package.version)
+          .font(.headline)
+          .foregroundColor(.secondary)
+      }
+      Spacer()
+    }
+    .padding()
   }
 }
 
