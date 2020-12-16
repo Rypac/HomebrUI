@@ -2,18 +2,23 @@ import Combine
 import SwiftUI
 
 class PackageListViewModel: ObservableObject {
+  struct Environment {
+    var packages: AnyPublisher<[Package], Never>
+    var isRefreshing: AnyPublisher<Bool, Never>
+  }
+
   @Published private(set) var isRefreshing: Bool = false
   @Published private(set) var packages: [Package] = []
 
   @Input var query: String = ""
 
-  init(repository: PackageRepository) {
-    repository.refreshing
+  init(environment: Environment) {
+    environment.isRefreshing
       .receive(on: DispatchQueue.main)
       .assign(to: &$isRefreshing)
 
     Publishers
-      .CombineLatest(repository.packages, $query.removeDuplicates())
+      .CombineLatest(environment.packages, $query.removeDuplicates())
       .map { packages, query in
         if query.isEmpty {
           return packages
@@ -24,6 +29,12 @@ class PackageListViewModel: ObservableObject {
       }
       .receive(on: DispatchQueue.main)
       .assign(to: &$packages)
+  }
+}
+
+extension PackageListViewModel {
+  convenience init(repository: PackageRepository) {
+    self.init(environment: Environment(packages: repository.packages, isRefreshing: repository.refreshing))
   }
 }
 

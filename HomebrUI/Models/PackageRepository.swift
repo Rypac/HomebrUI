@@ -1,15 +1,6 @@
 import Foundation
 import Combine
 
-struct Package: Equatable {
-  var name: String
-  var version: String
-}
-
-extension Package: Identifiable {
-  var id: String { name }
-}
-
 class PackageRepository {
   private enum PackageState {
     case empty
