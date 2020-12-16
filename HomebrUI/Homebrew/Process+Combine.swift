@@ -1,65 +1,87 @@
-import Foundation
 import Combine
+import Foundation
 
-struct ProcessError: Error {
+struct ProcessResult {
   let status: Int
-  let data: Data
-}
-
-extension ProcessError: LocalizedError {
-  var errorDescription: String? {
-    "Completed with status \(status): \(data)"
-  }
+  let standardOutput: Data
+  let standardError: Data
 }
 
 extension Process {
   static func runPublisher(
     for url: URL,
-    arguments: [String],
+    arguments: [String] = [],
     qualityOfService: QualityOfService = .default,
-    queue: DispatchQueue = .global(qos: .background)
-  ) -> AnyPublisher<Data, ProcessError> {
+    queue: DispatchQueue = .global(qos: .userInitiated)
+  ) -> AnyPublisher<ProcessResult, Error> {
     Deferred {
       Future { completion in
-        let task = Process()
-        task.executableURL = url
-        task.arguments = arguments
-        task.qualityOfService = qualityOfService
-
-        let outputPipe = Pipe()
-        let errorPipe = Pipe()
-
-        task.standardOutput = outputPipe
-        task.standardError = errorPipe
-
-        let channel = DispatchIO(type: .stream, fileDescriptor: outputPipe.fileHandleForReading.fileDescriptor, queue: queue) { errno in
-          guard errno == 0 else {
-            completion(.failure(ProcessError(status: Int(errno), data: Data())))
-            return
+        queue.async {
+          do {
+            let result = try run(for: url, arguments: arguments, qualityOfService: qualityOfService)
+            completion(.success(result))
+          } catch {
+            completion(.failure(error))
           }
         }
-
-        var collectedData = Data()
-
-        channel.read(offset: 0, length: Int.max, queue: queue) { closed, dispatchData, error in
-          if let data = dispatchData, !data.isEmpty {
-            collectedData.append(contentsOf: data)
-          }
-
-          if closed {
-            channel.close()
-
-            if error == 0 {
-              completion(.success(collectedData))
-            } else {
-              completion(.failure(ProcessError(status: Int(error), data: collectedData)))
-            }
-          }
-        }
-
-        task.launch()
       }
     }
     .eraseToAnyPublisher()
+  }
+
+  private static let outputQueue: OperationQueue = {
+    let queue = OperationQueue()
+    queue.name = String("output")
+    queue.maxConcurrentOperationCount = OperationQueue.defaultMaxConcurrentOperationCount
+    return queue
+  }()
+
+  static func run(
+    for url: URL,
+    arguments: [String] = [],
+    qualityOfService: QualityOfService = .default
+  ) throws -> ProcessResult {
+    let task = Process()
+    task.executableURL = url
+    task.arguments = arguments
+    task.qualityOfService = qualityOfService
+
+    let outputPipe = Pipe()
+    let errorPipe = Pipe()
+
+    task.standardOutput = outputPipe
+    task.standardError = errorPipe
+
+    try task.run()
+
+    var outputData = Data()
+    var errorData = Data()
+
+    outputQueue.addOperation {
+      outputPipe.read(into: &outputData)
+    }
+    outputQueue.addOperation {
+      errorPipe.read(into: &errorData)
+    }
+
+    outputQueue.waitUntilAllOperationsAreFinished()
+
+    task.waitUntilExit()
+
+    return ProcessResult(
+      status: Int(task.terminationStatus),
+      standardOutput: outputData,
+      standardError: errorData
+    )
+  }
+}
+
+private extension Pipe {
+  func read(into buffer: inout Data) {
+    var availableData = Data()
+    repeat {
+      availableData = fileHandleForReading.availableData
+      buffer.append(availableData)
+    } while !availableData.isEmpty
   }
 }
