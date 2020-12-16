@@ -13,28 +13,23 @@ class ContentViewModel: ObservableObject {
 
   private let triggerLoad = PassthroughSubject<Bool, Never>()
 
-  init(homebrew: Homebrew = Homebrew()) {
-    triggerLoad
-      .filter { isLoading in !isLoading }
-      .flatMap { _ in
-        homebrew.list()
-          .map(State.loadedPackages)
-          .catch { error in
-            Just(.failedToLoad(error.localizedDescription))
-              .setFailureType(to: Never.self)
-          }
-          .prepend(.loading)
-      }
+  private let repository: PackageRepository
+
+  init(repository: PackageRepository = PackageRepository()) {
+    self.repository = repository
+
+    repository.packages
+      .map(State.loadedPackages)
       .receive(on: DispatchQueue.main)
       .assign(to: &$state)
   }
 
   func loadPackages() {
-    triggerLoad.send(state == .loading)
+    repository.refresh()
   }
 }
 
-struct ContentView: View {
+struct PackageView: View {
   @StateObject var viewModel = ContentViewModel()
 
   var body: some View {
@@ -55,10 +50,18 @@ struct ContentView: View {
         Text(error)
       }
     }
-    .padding()
-    .frame(minWidth: 200, minHeight: 100)
     .onAppear {
       viewModel.loadPackages()
+    }
+  }
+}
+
+struct ContentView: View {
+  var body: some View {
+    NavigationView {
+      PackageView()
+        .frame(minWidth: 200)
+        .listStyle(SidebarListStyle())
     }
   }
 }

@@ -14,6 +14,7 @@
 		94B042A82589672700222EEF /* Homebrew.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94B042A72589672700222EEF /* Homebrew.swift */; };
 		94B042AB2589708500222EEF /* Process+Combine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94B042AA2589708500222EEF /* Process+Combine.swift */; };
 		94E4A247258980C400CC1C7D /* HomebrewModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94E4A246258980C400CC1C7D /* HomebrewModels.swift */; };
+		94E4A24A2589A3D400CC1C7D /* PackageRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94E4A2492589A3D400CC1C7D /* PackageRepository.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -27,6 +28,7 @@
 		94B042A72589672700222EEF /* Homebrew.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Homebrew.swift; sourceTree = "<group>"; };
 		94B042AA2589708500222EEF /* Process+Combine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Process+Combine.swift"; sourceTree = "<group>"; };
 		94E4A246258980C400CC1C7D /* HomebrewModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomebrewModels.swift; sourceTree = "<group>"; };
+		94E4A2492589A3D400CC1C7D /* PackageRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PackageRepository.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -84,6 +86,7 @@
 				94B042A72589672700222EEF /* Homebrew.swift */,
 				94B042AA2589708500222EEF /* Process+Combine.swift */,
 				94E4A246258980C400CC1C7D /* HomebrewModels.swift */,
+				94E4A2492589A3D400CC1C7D /* PackageRepository.swift */,
 			);
 			path = Homebrew;
 			sourceTree = "<group>";
@@ -157,6 +160,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				94E4A24A2589A3D400CC1C7D /* PackageRepository.swift in Sources */,
 				94B042982589666B00222EEF /* ContentView.swift in Sources */,
 				94E4A247258980C400CC1C7D /* HomebrewModels.swift in Sources */,
 				94B042A82589672700222EEF /* Homebrew.swift in Sources */,
