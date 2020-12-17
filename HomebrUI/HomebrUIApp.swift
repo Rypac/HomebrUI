@@ -4,7 +4,7 @@ import SwiftUI
 struct HomebrUIApp: App {
   private let repository = PackageRepository()
 
-  @State private var isPopoverPresented: Bool = false
+  @State private var isInfoPopoverPresented: Bool = false
 
   @Environment(\.scenePhase) private var scenePhase
 
@@ -12,21 +12,10 @@ struct HomebrUIApp: App {
     WindowGroup  {
       SidebarView(repository: repository)
         .toolbar {
-          ToolbarItem(placement: .navigation) {
-            Button(action: toggleSidebar) {
-              Label("Toggle Sidebar", systemImage: "sidebar.left")
-            }
-          }
-          ToolbarItem {
-            Button {
-              isPopoverPresented.toggle()
-            } label: {
-              Label("Info", systemImage: "info.circle")
-            }
-            .popover(isPresented: $isPopoverPresented) {
-              OperationInfoView(viewModel: OperationInfoViewModel(repository: repository))
-            }
-          }
+          ToolbarView(
+            repository: repository,
+            isInfoPopoverPresented: $isInfoPopoverPresented
+          )
         }
         .onChange(of: scenePhase) { newScenePhase in
           if newScenePhase == .active {
@@ -39,11 +28,4 @@ struct HomebrUIApp: App {
       AppCommands(repository: repository)
     }
   }
-}
-
-private func toggleSidebar() {
-  NSApp.keyWindow?.firstResponder?.tryToPerform(
-    #selector(NSSplitViewController.toggleSidebar(_:)),
-    with: nil
-  )
 }
