@@ -2,6 +2,7 @@ import Foundation
 
 enum HomebrewCommand {
   case list
+  case info(String)
   case update
   case upgrade(HomebrewUpgradeStrategy)
   case uninstall(String)
@@ -17,6 +18,8 @@ extension HomebrewCommand {
     switch self {
     case .list:
       return ["info", "--json=v2", "--installed"]
+    case .info(let formulae):
+      return ["info", "--json=v2", formulae]
     case .update:
       return ["update"]
     case .upgrade(.all):

@@ -23,12 +23,12 @@ struct HomebrewOperation: Identifiable {
   let status: Status
 }
 
-final class HomebrewQueue {
+final class HomebrewOperationQueue {
   private let operationSubject = CurrentValueSubject<HomebrewOperation?, Never>(nil)
 
-  private let configuration: Homebrew.Configuration
+  private let configuration: HomebrewConfiguration
 
-  init(configuration: Homebrew.Configuration = .default) {
+  init(configuration: HomebrewConfiguration = .default) {
     self.configuration = configuration
   }
 
@@ -77,7 +77,7 @@ final class HomebrewQueue {
   }
 }
 
-extension HomebrewQueue {
+extension HomebrewOperationQueue {
   var operation: AnyPublisher<HomebrewOperation, Never> {
     operationSubject
       .compactMap { $0 }

@@ -71,7 +71,7 @@ struct PackageListView: View {
           }
         }
         .contextMenu {
-          Button("Delete") {
+          Button("Uninstall") {
             viewModel.uninstall(package: package)
           }
         }

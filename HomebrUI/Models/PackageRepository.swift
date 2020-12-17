@@ -68,6 +68,7 @@ class PackageRepository {
             return Just([]).eraseToAnyPublisher()
           }
       }
+      .receive(on: DispatchQueue.main)
       .sink(
         receiveCompletion: { _ in },
         receiveValue: { packages in

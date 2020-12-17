@@ -2,14 +2,10 @@ import Foundation
 import Combine
 
 struct Homebrew {
-  struct Configuration {
-    var executablePath: String
-  }
+  private let queue: HomebrewOperationQueue
 
-  private let queue: HomebrewQueue
-
-  init(configuration: Configuration = .default) {
-    self.queue = HomebrewQueue(configuration: configuration)
+  init(configuration: HomebrewConfiguration = .default) {
+    self.queue = HomebrewOperationQueue(configuration: configuration)
   }
 
   func list() -> AnyPublisher<HomebrewInfo, Error> {
@@ -39,10 +35,6 @@ extension Homebrew {
   var operation: AnyPublisher<HomebrewOperation, Never> {
     queue.operation
   }
-}
-
-extension Homebrew.Configuration {
-  static let `default` = Homebrew.Configuration(executablePath: "/usr/local/bin/brew")
 }
 
 private struct HomebrewError: LocalizedError {
