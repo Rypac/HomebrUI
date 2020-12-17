@@ -3,11 +3,11 @@ import SwiftUI
 struct SidebarView: View {
   let repository: PackageRepository
 
-  @State private var selected: SidebarItem? = .installed
+  @State private var selectedSidebarItem: SidebarItem? = .installed
 
   var body: some View {
     NavigationView {
-      List(selection: $selected) {
+      List(selection: $selectedSidebarItem) {
         Group {
           NavigationLink(
             destination: InstalledPackagesView(
@@ -30,6 +30,10 @@ struct SidebarView: View {
       PackageListPlaceholderView()
       PackageDetailPlaceholderView()
     }
+    .focusedValue(
+      \.selectedSidebarItem,
+      $selectedSidebarItem.nonOptional(withDefault: .installed)
+    )
   }
 }
 

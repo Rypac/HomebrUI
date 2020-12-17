@@ -3,6 +3,7 @@ import SwiftUI
 @main
 struct HomebrUIApp: App {
   private let repository = PackageRepository()
+
   @State private var isPopoverPresented: Bool = false
 
   @Environment(\.scenePhase) private var scenePhase

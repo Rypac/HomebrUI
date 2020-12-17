@@ -1,17 +1,16 @@
 import SwiftUI
 
-struct AppCommands: Commands {
+struct PackageCommands: Commands {
   let repository: PackageRepository
 
   var body: some Commands {
-    SidebarCommands()
     CommandMenu("Packages") {
-      PackageCommands(repository: repository)
+      PackageCommandsContent(repository: repository)
     }
   }
 }
 
-private struct PackageCommands: View {
+private struct PackageCommandsContent: View {
   let repository: PackageRepository
 
   @FocusedBinding(\.selectedPackage) var selectedPackage

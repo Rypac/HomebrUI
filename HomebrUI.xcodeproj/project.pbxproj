@@ -7,11 +7,14 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		9409BC36258C10A100A95B9A /* Binding.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9409BC35258C10A100A95B9A /* Binding.swift */; };
+		9409BC3B258C11E200A95B9A /* PackageCommands.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9409BC3A258C11E200A95B9A /* PackageCommands.swift */; };
+		9409BC3F258C120700A95B9A /* ViewCommands.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9409BC3E258C120700A95B9A /* ViewCommands.swift */; };
+		9417F099258C123C008679E8 /* AppCommands.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9421EF2B258B0A8C00C0EC8B /* AppCommands.swift */; };
 		9421EF16258AC99000C0EC8B /* HomebrewOperationQueue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9421EF15258AC99000C0EC8B /* HomebrewOperationQueue.swift */; };
 		9421EF19258AE77E00C0EC8B /* HomebrewCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9421EF18258AE77E00C0EC8B /* HomebrewCommand.swift */; };
 		9421EF1E258AF51100C0EC8B /* ProcessOperation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9421EF1D258AF51100C0EC8B /* ProcessOperation.swift */; };
 		9421EF23258AF77600C0EC8B /* HomebrewConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9421EF22258AF77600C0EC8B /* HomebrewConfiguration.swift */; };
-		9421EF2C258B0A8C00C0EC8B /* Commands.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9421EF2B258B0A8C00C0EC8B /* Commands.swift */; };
 		94B042962589666B00222EEF /* HomebrUIApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94B042952589666B00222EEF /* HomebrUIApp.swift */; };
 		94B0429A2589666C00222EEF /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 94B042992589666C00222EEF /* Assets.xcassets */; };
 		94B0429D2589666C00222EEF /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 94B0429C2589666C00222EEF /* Preview Assets.xcassets */; };
@@ -29,11 +32,14 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		9409BC35258C10A100A95B9A /* Binding.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Binding.swift; sourceTree = "<group>"; };
+		9409BC3A258C11E200A95B9A /* PackageCommands.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PackageCommands.swift; sourceTree = "<group>"; };
+		9409BC3E258C120700A95B9A /* ViewCommands.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewCommands.swift; sourceTree = "<group>"; };
 		9421EF15258AC99000C0EC8B /* HomebrewOperationQueue.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomebrewOperationQueue.swift; sourceTree = "<group>"; };
 		9421EF18258AE77E00C0EC8B /* HomebrewCommand.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomebrewCommand.swift; sourceTree = "<group>"; };
 		9421EF1D258AF51100C0EC8B /* ProcessOperation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProcessOperation.swift; sourceTree = "<group>"; };
 		9421EF22258AF77600C0EC8B /* HomebrewConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomebrewConfiguration.swift; sourceTree = "<group>"; };
-		9421EF2B258B0A8C00C0EC8B /* Commands.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Commands.swift; sourceTree = "<group>"; };
+		9421EF2B258B0A8C00C0EC8B /* AppCommands.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppCommands.swift; sourceTree = "<group>"; };
 		94B042922589666B00222EEF /* HomebrUI.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = HomebrUI.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		94B042952589666B00222EEF /* HomebrUIApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomebrUIApp.swift; sourceTree = "<group>"; };
 		94B042992589666C00222EEF /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -64,6 +70,24 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		9409BC34258C109600A95B9A /* Extensions */ = {
+			isa = PBXGroup;
+			children = (
+				9409BC35258C10A100A95B9A /* Binding.swift */,
+			);
+			path = Extensions;
+			sourceTree = "<group>";
+		};
+		9409BC39258C11D800A95B9A /* Commands */ = {
+			isa = PBXGroup;
+			children = (
+				9421EF2B258B0A8C00C0EC8B /* AppCommands.swift */,
+				9409BC3A258C11E200A95B9A /* PackageCommands.swift */,
+				9409BC3E258C120700A95B9A /* ViewCommands.swift */,
+			);
+			path = Commands;
+			sourceTree = "<group>";
+		};
 		94B042892589666B00222EEF = {
 			isa = PBXGroup;
 			children = (
@@ -85,9 +109,10 @@
 			children = (
 				94E4A25A2589C99100CC1C7D /* Models */,
 				94E4A24C2589BD1400CC1C7D /* Views */,
+				9409BC39258C11D800A95B9A /* Commands */,
 				94B042A62589671600222EEF /* Homebrew */,
+				9409BC34258C109600A95B9A /* Extensions */,
 				94B042952589666B00222EEF /* HomebrUIApp.swift */,
-				9421EF2B258B0A8C00C0EC8B /* Commands.swift */,
 				94B042992589666C00222EEF /* Assets.xcassets */,
 				94B0429E2589666C00222EEF /* Info.plist */,
 				94B0429F2589666C00222EEF /* HomebrUI.entitlements */,
@@ -123,9 +148,9 @@
 			isa = PBXGroup;
 			children = (
 				94E4A2512589BD3A00CC1C7D /* Input.swift */,
+				94E4A24D2589BD1F00CC1C7D /* InstalledPackagesView.swift */,
 				94C12122258B22700014E558 /* OperationInfoView.swift */,
 				94E4A2552589BD9600CC1C7D /* PackageDetailView.swift */,
-				94E4A24D2589BD1F00CC1C7D /* InstalledPackagesView.swift */,
 				94E38D4D258B428B00747B04 /* SidebarView.swift */,
 			);
 			path = Views;
@@ -212,9 +237,11 @@
 				94E615AA258ABFAA000D432C /* AsyncOperation.swift in Sources */,
 				94E4A24A2589A3D400CC1C7D /* PackageRepository.swift in Sources */,
 				94E4A24E2589BD1F00CC1C7D /* InstalledPackagesView.swift in Sources */,
+				9417F099258C123C008679E8 /* AppCommands.swift in Sources */,
 				94E4A2562589BD9600CC1C7D /* PackageDetailView.swift in Sources */,
 				94E4A25C2589C9A500CC1C7D /* Package.swift in Sources */,
 				9421EF23258AF77600C0EC8B /* HomebrewConfiguration.swift in Sources */,
+				9409BC3F258C120700A95B9A /* ViewCommands.swift in Sources */,
 				9421EF1E258AF51100C0EC8B /* ProcessOperation.swift in Sources */,
 				94E4A247258980C400CC1C7D /* HomebrewModels.swift in Sources */,
 				94B042A82589672700222EEF /* Homebrew.swift in Sources */,
@@ -222,9 +249,10 @@
 				94C12123258B22700014E558 /* OperationInfoView.swift in Sources */,
 				94B042962589666B00222EEF /* HomebrUIApp.swift in Sources */,
 				94E4A2522589BD3A00CC1C7D /* Input.swift in Sources */,
+				9409BC36258C10A100A95B9A /* Binding.swift in Sources */,
 				94B042AB2589708500222EEF /* Process.swift in Sources */,
 				94E38D4E258B428B00747B04 /* SidebarView.swift in Sources */,
-				9421EF2C258B0A8C00C0EC8B /* Commands.swift in Sources */,
+				9409BC3B258C11E200A95B9A /* PackageCommands.swift in Sources */,
 				9421EF19258AE77E00C0EC8B /* HomebrewCommand.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
