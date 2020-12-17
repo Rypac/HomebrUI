@@ -1,5 +1,8 @@
 import Foundation
 
+/// An asynchronous `Operation` with proper multi-threading and KVO support.
+///
+/// Implementation from: https://www.avanderlee.com/swift/asynchronous-operations/
 open class AsyncOperation: Operation {
   private let lockQueue = DispatchQueue(label: "com.swiftlee.asyncoperation", attributes: .concurrent)
 
