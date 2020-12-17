@@ -85,7 +85,7 @@ extension Process {
 
   private static let processQueue: OperationQueue = {
     let queue = OperationQueue()
-    queue.name = String("homebrew_process")
+    queue.name = "Process Queue"
     queue.maxConcurrentOperationCount = OperationQueue.defaultMaxConcurrentOperationCount
     return queue
   }()

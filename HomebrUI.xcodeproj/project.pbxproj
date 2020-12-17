@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		9421EF16258AC99000C0EC8B /* HomebrewQueue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9421EF15258AC99000C0EC8B /* HomebrewQueue.swift */; };
 		94B042962589666B00222EEF /* HomebrUIApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94B042952589666B00222EEF /* HomebrUIApp.swift */; };
 		94B0429A2589666C00222EEF /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 94B042992589666C00222EEF /* Assets.xcassets */; };
 		94B0429D2589666C00222EEF /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 94B0429C2589666C00222EEF /* Preview Assets.xcassets */; };
@@ -19,9 +20,11 @@
 		94E4A2562589BD9600CC1C7D /* PackageDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94E4A2552589BD9600CC1C7D /* PackageDetailView.swift */; };
 		94E4A25C2589C9A500CC1C7D /* Package.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94E4A25B2589C9A500CC1C7D /* Package.swift */; };
 		94E615A6258AA7BD000D432C /* HomebrewCommandQueue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94E615A5258AA7BD000D432C /* HomebrewCommandQueue.swift */; };
+		94E615AA258ABFAA000D432C /* AsyncOperation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94E615A9258ABFAA000D432C /* AsyncOperation.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		9421EF15258AC99000C0EC8B /* HomebrewQueue.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomebrewQueue.swift; sourceTree = "<group>"; };
 		94B042922589666B00222EEF /* HomebrUI.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = HomebrUI.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		94B042952589666B00222EEF /* HomebrUIApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomebrUIApp.swift; sourceTree = "<group>"; };
 		94B042992589666C00222EEF /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -37,6 +40,7 @@
 		94E4A2552589BD9600CC1C7D /* PackageDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PackageDetailView.swift; sourceTree = "<group>"; };
 		94E4A25B2589C9A500CC1C7D /* Package.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Package.swift; sourceTree = "<group>"; };
 		94E615A5258AA7BD000D432C /* HomebrewCommandQueue.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomebrewCommandQueue.swift; sourceTree = "<group>"; };
+		94E615A9258ABFAA000D432C /* AsyncOperation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AsyncOperation.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -96,6 +100,8 @@
 				94B042AA2589708500222EEF /* Process+Combine.swift */,
 				94E4A246258980C400CC1C7D /* HomebrewModels.swift */,
 				94E615A5258AA7BD000D432C /* HomebrewCommandQueue.swift */,
+				94E615A9258ABFAA000D432C /* AsyncOperation.swift */,
+				9421EF15258AC99000C0EC8B /* HomebrewQueue.swift */,
 			);
 			path = Homebrew;
 			sourceTree = "<group>";
@@ -189,12 +195,14 @@
 			buildActionMask = 2147483647;
 			files = (
 				94E615A6258AA7BD000D432C /* HomebrewCommandQueue.swift in Sources */,
+				94E615AA258ABFAA000D432C /* AsyncOperation.swift in Sources */,
 				94E4A24A2589A3D400CC1C7D /* PackageRepository.swift in Sources */,
 				94E4A24E2589BD1F00CC1C7D /* PackageListView.swift in Sources */,
 				94E4A2562589BD9600CC1C7D /* PackageDetailView.swift in Sources */,
 				94E4A25C2589C9A500CC1C7D /* Package.swift in Sources */,
 				94E4A247258980C400CC1C7D /* HomebrewModels.swift in Sources */,
 				94B042A82589672700222EEF /* Homebrew.swift in Sources */,
+				9421EF16258AC99000C0EC8B /* HomebrewQueue.swift in Sources */,
 				94B042962589666B00222EEF /* HomebrUIApp.swift in Sources */,
 				94E4A2522589BD3A00CC1C7D /* Input.swift in Sources */,
 				94B042AB2589708500222EEF /* Process+Combine.swift in Sources */,

@@ -39,8 +39,7 @@ class PackageRepository {
       .flatMap {
         homebrew.list()
           .handleEvents(
-            receiveSubscription: { sub in
-              print("Refresh started")
+            receiveSubscription: { _ in
               self.refreshState.send(.refreshing)
             },
             receiveCompletion: { completion in
@@ -92,6 +91,7 @@ class PackageRepository {
 
   func uninstall(_ package: Package) {
     homebrew.uninstallFormulae(name: package.id)
+      .receive(on: DispatchQueue.main)
       .sink(
         receiveCompletion: { completion in
           switch completion {
@@ -101,9 +101,8 @@ class PackageRepository {
             print("Uninstall completed")
           }
         },
-        receiveValue: { output in
-          print(output)
-          self.refresh()
+        receiveValue: { [actions] output in
+          actions.send(.refresh)
         }
       )
       .store(in: &cancellables)

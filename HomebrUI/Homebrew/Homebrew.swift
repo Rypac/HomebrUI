@@ -6,14 +6,14 @@ struct Homebrew {
     var executablePath: String
   }
 
-  private let commandQueue: HomebrewCommandQueue
+  private let queue: HomebrewQueue
 
   init(configuration: Configuration = .default) {
-    self.commandQueue = HomebrewCommandQueue(configuration: configuration)
+    self.queue = HomebrewQueue(configuration: configuration)
   }
 
   func list() -> AnyPublisher<HomebrewInfo, Error> {
-    commandQueue.run(.list)
+    queue.run(.list)
       .tryMap { result in
         guard result.status == 0 else {
           throw HomebrewError(status: result.status, output: result.standardError)
@@ -24,7 +24,7 @@ struct Homebrew {
   }
 
   func uninstallFormulae(name: String) -> AnyPublisher<String, Error> {
-    commandQueue.run(.uninstall(name))
+    queue.run(.uninstall(name))
       .tryMap { result in
         guard result.status == 0 else {
           throw HomebrewError(status: result.status, output: result.standardError)
