@@ -4,7 +4,7 @@ struct PackageDetailView: View {
   let package: Package
 
   var body: some View {
-    VStack {
+    VStack(alignment: .leading) {
       HStack {
         Text(package.name)
           .font(.title)
@@ -12,6 +12,10 @@ struct PackageDetailView: View {
         Text(package.version)
           .font(.headline)
           .foregroundColor(.secondary)
+      }
+      Divider()
+      if let description = package.description {
+        Text(description)
       }
       Spacer()
     }

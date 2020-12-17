@@ -41,21 +41,8 @@ class PackageRepository {
           )
           .compactMap { info in
             InstalledPackages(
-              formulae: info.formulae.compactMap { formulae in
-                guard let installedPackage = formulae.installed.first, installedPackage.installedOnRequest else {
-                  return nil
-                }
-                return Package(
-                  name: formulae.name,
-                  version: installedPackage.version
-                )
-              },
-              casks: info.casks.compactMap { cask in
-                Package(
-                  name: cask.name.first ?? cask.token,
-                  version: cask.version
-                )
-              }
+              formulae: info.formulae.compactMap(Package.init(formulae:)),
+              casks: info.casks.map(Package.init(cask:))
             )
           }
           .catch { _ in

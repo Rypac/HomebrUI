@@ -5,11 +5,35 @@ struct InstalledPackages {
   var casks: [Package]
 }
 
-struct Package: Equatable {
+struct Package: Identifiable, Equatable {
+  typealias ID = String
+
+  let id: ID
   var name: String
   var version: String
+  var description: String?
 }
 
-extension Package: Identifiable {
-  var id: String { name }
+extension Package {
+  init?(formulae: Formulae) {
+    guard let installed = formulae.installed.first, installed.installedOnRequest else {
+      return nil
+    }
+
+    self.init(
+      id: formulae.name,
+      name: formulae.fullName,
+      version: installed.version,
+      description: formulae.description
+    )
+  }
+
+  init(cask: Cask) {
+    self.init(
+      id: cask.token,
+      name: cask.name.first ?? cask.token,
+      version: cask.version,
+      description: cask.description
+    )
+  }
 }
