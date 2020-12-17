@@ -19,3 +19,11 @@ struct PackageDetailView: View {
     .frame(minWidth: 300)
   }
 }
+
+struct PackageDetailPlaceholderView: View {
+  var body: some View {
+    Text("Select a Package")
+      .font(.callout)
+      .foregroundColor(.secondary)
+  }
+}

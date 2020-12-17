@@ -27,14 +27,13 @@ struct SidebarView: View {
       .navigationTitle("HomebrUI")
       .frame(minWidth: 200, maxWidth: 300)
 
-      PackageListContainer()
-      PackageDetailContainer()
+      PackageListPlaceholderView()
+      PackageDetailPlaceholderView()
     }
   }
 }
 
-typealias PackageListContainer = EmptyView
-typealias PackageDetailContainer = EmptyView
+typealias PackageListPlaceholderView = EmptyView
 
 enum SidebarItem {
   case installed
