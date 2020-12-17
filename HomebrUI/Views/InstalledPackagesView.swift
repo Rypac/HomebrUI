@@ -61,6 +61,8 @@ extension InstalledPackagesViewModel {
 struct InstalledPackagesView: View {
   @ObservedObject var viewModel: InstalledPackagesViewModel
 
+  @Environment(\.openURL) private var openURL
+
   var body: some View {
     VStack(spacing: 0) {
       PackageFilterView(query: $viewModel.query)
@@ -68,6 +70,8 @@ struct InstalledPackagesView: View {
         packages: viewModel.packages,
         action: { action in
           switch action {
+          case .viewHomepage(let package):
+            openURL(package.homepage)
           case .uninstall(let package):
             viewModel.uninstall(package: package)
           }
@@ -94,6 +98,7 @@ private struct PackageFilterView: View {
 
 private struct PackageListView: View {
   enum Action {
+    case viewHomepage(Package)
     case uninstall(Package)
   }
 
@@ -127,6 +132,10 @@ private struct PackageListView: View {
       }
     }
     .contextMenu {
+      Button("View Homepage") {
+        action(.viewHomepage(package))
+      }
+      Divider()
       Button("Uninstall") {
         action(.uninstall(package))
       }
