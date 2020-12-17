@@ -57,10 +57,10 @@ struct PackageListView: View {
   @ObservedObject var viewModel: PackageListViewModel
 
   var body: some View {
-    VStack {
+    VStack(spacing: 0) {
       TextField("Filter", text: $viewModel.query)
         .textFieldStyle(RoundedBorderTextFieldStyle())
-        .padding([.leading, .trailing], 8)
+        .padding(8)
       List(viewModel.packages) { package in
         NavigationLink(destination: PackageDetailView(package: package)) {
           Text(package.name)
@@ -74,22 +74,29 @@ struct PackageListView: View {
           }
         }
       }
-      Spacer()
+      .listStyle(SidebarListStyle())
+      Spacer(minLength: 0)
       if viewModel.isRefreshing {
         RefreshIndicator()
       }
     }
+    .frame(minWidth: 250, maxWidth: 300)
   }
 }
 
 private struct RefreshIndicator: View {
   var body: some View {
-    HStack {
-      Text("Refreshing")
-        .font(.callout)
-      Spacer()
-      ProgressView()
+    VStack {
+      Divider()
+      HStack {
+        Text("Refreshing")
+          .font(.callout)
+        Spacer()
+        ProgressView()
+          .scaleEffect(0.5)
+      }
+      .padding([.leading, .trailing])
+      .padding(.bottom, 8)
     }
-    .padding()
   }
 }

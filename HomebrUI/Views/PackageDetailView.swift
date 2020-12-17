@@ -16,5 +16,6 @@ struct PackageDetailView: View {
       Spacer()
     }
     .padding()
+    .frame(minWidth: 300)
   }
 }

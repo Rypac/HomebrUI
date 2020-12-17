@@ -9,24 +9,23 @@ struct HomebrUIApp: App {
 
   var body: some Scene {
     WindowGroup  {
-      NavigationView {
-        PackageListView(viewModel: PackageListViewModel(repository: repository))
-          .frame(minWidth: 200)
-          .listStyle(SidebarListStyle())
-      }
-      .toolbar {
-        Button("Info") {
-          isPopoverPresented.toggle()
+      SidebarView(repository: repository)
+        .toolbar {
+          Button {
+            isPopoverPresented.toggle()
+          } label: {
+            Label("Info", systemImage: "info.circle")
+          }
+          .popover(isPresented: $isPopoverPresented) {
+            OperationInfoView(viewModel: OperationInfoViewModel(repository: repository))
+          }
         }
-        .popover(isPresented: $isPopoverPresented) {
-          OperationInfoView(viewModel: OperationInfoViewModel(repository: repository))
+        .onChange(of: scenePhase) { newScenePhase in
+          if newScenePhase == .active {
+            repository.refresh()
+          }
         }
-      }
-      .onChange(of: scenePhase) { newScenePhase in
-        if newScenePhase == .active {
-          repository.refresh()
-        }
-      }
+        .frame(minHeight: 400, idealHeight: 700)
     }
     .commands {
       AppCommands(repository: repository)
