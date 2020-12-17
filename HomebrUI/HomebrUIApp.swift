@@ -20,13 +20,7 @@ struct HomebrUIApp: App {
       }
     }
     .commands {
-      SidebarCommands()
-      CommandMenu("Packages") {
-        Button("Refresh") {
-          repository.refresh()
-        }
-        .keyboardShortcut("r", modifiers: .command)
-      }
+      AppCommands(repository: repository)
     }
   }
 }
