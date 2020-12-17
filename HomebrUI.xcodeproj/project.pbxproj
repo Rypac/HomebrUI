@@ -17,6 +17,7 @@
 		94B0429D2589666C00222EEF /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 94B0429C2589666C00222EEF /* Preview Assets.xcassets */; };
 		94B042A82589672700222EEF /* Homebrew.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94B042A72589672700222EEF /* Homebrew.swift */; };
 		94B042AB2589708500222EEF /* Process.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94B042AA2589708500222EEF /* Process.swift */; };
+		94C12123258B22700014E558 /* OperationInfoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94C12122258B22700014E558 /* OperationInfoView.swift */; };
 		94E4A247258980C400CC1C7D /* HomebrewModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94E4A246258980C400CC1C7D /* HomebrewModels.swift */; };
 		94E4A24A2589A3D400CC1C7D /* PackageRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94E4A2492589A3D400CC1C7D /* PackageRepository.swift */; };
 		94E4A24E2589BD1F00CC1C7D /* PackageListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94E4A24D2589BD1F00CC1C7D /* PackageListView.swift */; };
@@ -40,6 +41,7 @@
 		94B0429F2589666C00222EEF /* HomebrUI.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = HomebrUI.entitlements; sourceTree = "<group>"; };
 		94B042A72589672700222EEF /* Homebrew.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Homebrew.swift; sourceTree = "<group>"; };
 		94B042AA2589708500222EEF /* Process.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Process.swift; sourceTree = "<group>"; };
+		94C12122258B22700014E558 /* OperationInfoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OperationInfoView.swift; sourceTree = "<group>"; };
 		94E4A246258980C400CC1C7D /* HomebrewModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomebrewModels.swift; sourceTree = "<group>"; };
 		94E4A2492589A3D400CC1C7D /* PackageRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PackageRepository.swift; sourceTree = "<group>"; };
 		94E4A24D2589BD1F00CC1C7D /* PackageListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PackageListView.swift; sourceTree = "<group>"; };
@@ -119,6 +121,7 @@
 			isa = PBXGroup;
 			children = (
 				94E4A2512589BD3A00CC1C7D /* Input.swift */,
+				94C12122258B22700014E558 /* OperationInfoView.swift */,
 				94E4A2552589BD9600CC1C7D /* PackageDetailView.swift */,
 				94E4A24D2589BD1F00CC1C7D /* PackageListView.swift */,
 			);
@@ -213,6 +216,7 @@
 				94E4A247258980C400CC1C7D /* HomebrewModels.swift in Sources */,
 				94B042A82589672700222EEF /* Homebrew.swift in Sources */,
 				9421EF16258AC99000C0EC8B /* HomebrewOperationQueue.swift in Sources */,
+				94C12123258B22700014E558 /* OperationInfoView.swift in Sources */,
 				94B042962589666B00222EEF /* HomebrUIApp.swift in Sources */,
 				94E4A2522589BD3A00CC1C7D /* Input.swift in Sources */,
 				94B042AB2589708500222EEF /* Process.swift in Sources */,

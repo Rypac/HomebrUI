@@ -63,12 +63,10 @@ struct PackageListView: View {
         .padding([.leading, .trailing], 8)
       List(viewModel.packages) { package in
         NavigationLink(destination: PackageDetailView(package: package)) {
-          HStack {
-            Text(package.name)
-            Spacer()
-            Text(package.version)
-              .foregroundColor(.secondary)
-          }
+          Text(package.name)
+          Spacer()
+          Text(package.version)
+            .foregroundColor(.secondary)
         }
         .contextMenu {
           Button("Uninstall") {
@@ -76,16 +74,22 @@ struct PackageListView: View {
           }
         }
       }
+      Spacer()
       if viewModel.isRefreshing {
-        Spacer()
-        HStack {
-          Text("Refreshing")
-            .font(.callout)
-          Spacer()
-          ProgressView()
-        }
-        .padding()
+        RefreshIndicator()
       }
     }
+  }
+}
+
+private struct RefreshIndicator: View {
+  var body: some View {
+    HStack {
+      Text("Refreshing")
+        .font(.callout)
+      Spacer()
+      ProgressView()
+    }
+    .padding()
   }
 }

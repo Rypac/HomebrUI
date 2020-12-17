@@ -1,5 +1,5 @@
-import Foundation
 import Combine
+import Foundation
 
 class PackageRepository {
   private enum PackageState {
@@ -42,13 +42,7 @@ class PackageRepository {
             receiveSubscription: { _ in
               self.refreshState.send(.refreshing)
             },
-            receiveCompletion: { completion in
-              switch completion {
-              case .failure(let error):
-                print(error.localizedDescription)
-              case .finished:
-                print("Refresh completed")
-              }
+            receiveCompletion: { _ in
               self.refreshState.send(.idle)
             }
           )
@@ -63,9 +57,8 @@ class PackageRepository {
               )
             }
           }
-          .catch { error -> AnyPublisher<[Package], Never> in
-            print(error.localizedDescription)
-            return Just([]).eraseToAnyPublisher()
+          .catch { _ in
+            Just([])
           }
       }
       .receive(on: DispatchQueue.main)
@@ -93,14 +86,7 @@ class PackageRepository {
     homebrew.uninstallFormulae(name: package.id)
       .receive(on: DispatchQueue.main)
       .sink(
-        receiveCompletion: { completion in
-          switch completion {
-          case .failure(let error):
-            print(error.localizedDescription)
-          case .finished:
-            print("Uninstall completed")
-          }
-        },
+        receiveCompletion: { _ in },
         receiveValue: { [actions] output in
           actions.send(.refresh)
         }
@@ -110,6 +96,10 @@ class PackageRepository {
 }
 
 extension PackageRepository {
+  var operation: AnyPublisher<HomebrewOperation, Never> {
+    homebrew.operation
+  }
+
   var packages: AnyPublisher<[Package], Never> {
     packageState
       .compactMap {
