@@ -3,9 +3,11 @@ import SwiftUI
 struct SidebarView: View {
   let repository: PackageRepository
 
+  @State private var selected: SidebarItem? = .installed
+
   var body: some View {
     NavigationView {
-      List {
+      List(selection: $selected) {
         Group {
           NavigationLink(
             destination: InstalledPackagesView(
@@ -14,14 +16,11 @@ struct SidebarView: View {
           ) {
             Label("Installed", systemImage: "shippingbox")
           }
+          .tag(SidebarItem.installed)
           NavigationLink(destination: EmptyView()) {
             Label("Search", systemImage: "magnifyingglass")
           }
-        }
-        Spacer()
-        Divider()
-        NavigationLink(destination: EmptyView()) {
-          Label("Settings", systemImage: "gear")
+          .tag(SidebarItem.search)
         }
       }
       .listStyle(SidebarListStyle())
@@ -36,3 +35,8 @@ struct SidebarView: View {
 
 typealias PackageListContainer = EmptyView
 typealias PackageDetailContainer = EmptyView
+
+enum SidebarItem {
+  case installed
+  case search
+}
