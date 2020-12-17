@@ -11,13 +11,20 @@ struct HomebrUIApp: App {
     WindowGroup  {
       SidebarView(repository: repository)
         .toolbar {
-          Button {
-            isPopoverPresented.toggle()
-          } label: {
-            Label("Info", systemImage: "info.circle")
+          ToolbarItem(placement: .navigation) {
+            Button(action: toggleSidebar) {
+              Label("Toggle Sidebar", systemImage: "sidebar.left")
+            }
           }
-          .popover(isPresented: $isPopoverPresented) {
-            OperationInfoView(viewModel: OperationInfoViewModel(repository: repository))
+          ToolbarItem {
+            Button {
+              isPopoverPresented.toggle()
+            } label: {
+              Label("Info", systemImage: "info.circle")
+            }
+            .popover(isPresented: $isPopoverPresented) {
+              OperationInfoView(viewModel: OperationInfoViewModel(repository: repository))
+            }
           }
         }
         .onChange(of: scenePhase) { newScenePhase in
@@ -31,4 +38,11 @@ struct HomebrUIApp: App {
       AppCommands(repository: repository)
     }
   }
+}
+
+private func toggleSidebar() {
+  NSApp.keyWindow?.firstResponder?.tryToPerform(
+    #selector(NSSplitViewController.toggleSidebar(_:)),
+    with: nil
+  )
 }
