@@ -8,11 +8,15 @@ struct Homebrew {
     self.queue = HomebrewOperationQueue(configuration: configuration)
   }
 
-  func list() -> AnyPublisher<HomebrewInfo, Error> {
+  var operationPublisher: AnyPublisher<HomebrewOperation, Never> {
+    queue.operationPublisher
+  }
+
+  func listInstalledPackages() -> AnyPublisher<HomebrewInfo, Error> {
     queue.run(.list)
       .tryMap { result in
         guard result.status == 0 else {
-          throw HomebrewError(status: result.status, output: result.standardError)
+          throw HomebrewError(processResult: result)
         }
         return try JSONDecoder().decode(HomebrewInfo.self, from: result.standardOutput)
       }
@@ -23,17 +27,11 @@ struct Homebrew {
     queue.run(.uninstall(name))
       .tryMap { result in
         guard result.status == 0 else {
-          throw HomebrewError(status: result.status, output: result.standardError)
+          throw HomebrewError(processResult: result)
         }
         return String(decoding: result.standardOutput, as: UTF8.self)
       }
       .eraseToAnyPublisher()
-  }
-}
-
-extension Homebrew {
-  var operation: AnyPublisher<HomebrewOperation, Never> {
-    queue.operation
   }
 }
 
@@ -43,5 +41,14 @@ private struct HomebrewError: LocalizedError {
 
   var errorDescription: String {
     "Exited with status \(status): \(String(decoding: output, as: UTF8.self))"
+  }
+}
+
+private extension HomebrewError {
+  init(processResult result: ProcessResult) {
+    self.init(
+      status: result.status,
+      output: result.standardError.isEmpty ? result.standardOutput : result.standardError
+    )
   }
 }

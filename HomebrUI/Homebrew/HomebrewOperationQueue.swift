@@ -1,13 +1,6 @@
 import Combine
 import Foundation
 
-private let homebrewQueue: OperationQueue = {
-  let queue = OperationQueue()
-  queue.name = "Homebrew Command Queue"
-  queue.maxConcurrentOperationCount = 1
-  return queue
-}()
-
 struct HomebrewOperation: Identifiable {
   typealias ID = UUID
 
@@ -23,7 +16,17 @@ struct HomebrewOperation: Identifiable {
   let status: Status
 }
 
+// Homebrew does not allow for concurrent running of commands so all operations
+// must be queue and performed serially.
 final class HomebrewOperationQueue {
+  /// The serial queue for running Homebrew commands.
+  private static let queue: OperationQueue = {
+    let queue = OperationQueue()
+    queue.name = "Homebrew Command Queue"
+    queue.maxConcurrentOperationCount = 1
+    return queue
+  }()
+
   private let operationSubject = CurrentValueSubject<HomebrewOperation?, Never>(nil)
 
   private let configuration: HomebrewConfiguration
@@ -33,18 +36,45 @@ final class HomebrewOperationQueue {
   }
 
   deinit {
-    homebrewQueue.cancelAllOperations()
+    Self.queue.cancelAllOperations()
+  }
+
+  /// A messsage center style publisher which emits new Homebrew operations and status
+  /// changes as they occur.
+  var operationPublisher: AnyPublisher<HomebrewOperation, Never> {
+    operationSubject
+      .compactMap { $0 }
+      .eraseToAnyPublisher()
+  }
+
+  /// Runs a Homebrew command and returns the result of running the command, optionally
+  /// completing with an error if the operation is cancelled.
+  func run(_ command: HomebrewCommand) -> AnyPublisher<ProcessResult, Error> {
+    let id = enqueue(command)
+    return operationSubject
+      .tryCompactMap { operation in
+        guard let operation = operation, operation.id == id else {
+          return nil
+        }
+        switch operation.status {
+        case .completed(let result): return result
+        case .cancelled: throw HomebrewCancellationError(id: id)
+        case .queued, .running: return nil
+        }
+      }
+      .first()
+      .eraseToAnyPublisher()
   }
 
   @discardableResult
-  func add(_ command: HomebrewCommand) -> HomebrewOperation.ID {
+  func enqueue(_ command: HomebrewCommand) -> HomebrewOperation.ID {
     let id = HomebrewOperation.ID()
 
     operationSubject.send(
       HomebrewOperation(id: id, command: command, status: .queued)
     )
 
-    homebrewQueue.addOperation(
+    Self.queue.addOperation(
       ProcessOperation(
         id: id,
         url: URL(fileURLWithPath: configuration.executablePath),
@@ -71,35 +101,16 @@ final class HomebrewOperationQueue {
   }
 
   func cancel(id: HomebrewOperation.ID) {
-    if let process = homebrewQueue.operations.first(where: { ($0 as? ProcessOperation)?.id == id }) {
+    if let process = Self.queue.operations.first(where: { ($0 as? ProcessOperation)?.id == id }) {
       process.cancel()
     }
   }
 }
 
-extension HomebrewOperationQueue {
-  var operation: AnyPublisher<HomebrewOperation, Never> {
-    operationSubject
-      .compactMap { $0 }
-      .eraseToAnyPublisher()
-  }
+private struct HomebrewCancellationError: LocalizedError {
+  let id: HomebrewOperation.ID
 
-  func run(_ command: HomebrewCommand) -> AnyPublisher<ProcessResult, Error> {
-    let id = add(command)
-    return operationSubject
-      .tryCompactMap { operation in
-        guard let operation = operation, operation.id == id else {
-          return nil
-        }
-        switch operation.status {
-        case .completed(let result): return result
-        case .cancelled: throw HomebrewCancellationError()
-        case .queued, .running: return nil
-        }
-      }
-      .first()
-      .eraseToAnyPublisher()
+  var errorDescription: String {
+    "Cancelled running command: \(id)"
   }
 }
-
-private struct HomebrewCancellationError: Error {}

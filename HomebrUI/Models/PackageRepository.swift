@@ -37,7 +37,7 @@ class PackageRepository {
 
     refreshAction
       .flatMap {
-        homebrew.list()
+        homebrew.listInstalledPackages()
           .handleEvents(
             receiveSubscription: { _ in
               self.refreshState.send(.refreshing)
@@ -96,8 +96,8 @@ class PackageRepository {
 }
 
 extension PackageRepository {
-  var operation: AnyPublisher<HomebrewOperation, Never> {
-    homebrew.operation
+  var operationPublisher: AnyPublisher<HomebrewOperation, Never> {
+    homebrew.operationPublisher
   }
 
   var packages: AnyPublisher<[Package], Never> {
