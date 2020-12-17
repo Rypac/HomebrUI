@@ -1,7 +1,7 @@
 import Combine
 import SwiftUI
 
-class PackageListViewModel: ObservableObject {
+class InstalledPackagesViewModel: ObservableObject {
   struct Environment {
     var packages: AnyPublisher<[Package], Never>
     var isRefreshing: AnyPublisher<Bool, Never>
@@ -41,7 +41,7 @@ class PackageListViewModel: ObservableObject {
   }
 }
 
-extension PackageListViewModel {
+extension InstalledPackagesViewModel {
   convenience init(repository: PackageRepository) {
     self.init(
       environment: Environment(
@@ -53,38 +53,71 @@ extension PackageListViewModel {
   }
 }
 
-struct PackageListView: View {
-  @ObservedObject var viewModel: PackageListViewModel
+struct InstalledPackagesView: View {
+  @ObservedObject var viewModel: InstalledPackagesViewModel
 
   var body: some View {
     VStack(spacing: 0) {
-      TextField("Filter", text: $viewModel.query)
-        .textFieldStyle(RoundedBorderTextFieldStyle())
-        .padding(8)
-      List(viewModel.packages) { package in
-        NavigationLink(destination: PackageDetailView(package: package)) {
-          Text(package.name)
-          Spacer()
-          Text(package.version)
-            .foregroundColor(.secondary)
-        }
-        .contextMenu {
-          Button("Uninstall") {
+      PackageFilterView(query: $viewModel.query)
+      PackageListView(
+        packages: viewModel.packages,
+        action: { action in
+          switch action {
+          case .uninstall(let package):
             viewModel.uninstall(package: package)
           }
         }
-      }
-      .listStyle(SidebarListStyle())
+      )
       Spacer(minLength: 0)
       if viewModel.isRefreshing {
-        RefreshIndicator()
+        PackageRefreshIndicator()
       }
     }
     .frame(minWidth: 250, maxWidth: 300)
   }
 }
 
-private struct RefreshIndicator: View {
+private struct PackageFilterView: View {
+  @Binding var query: String
+
+  var body: some View {
+    TextField("Filter", text: $query)
+      .textFieldStyle(RoundedBorderTextFieldStyle())
+      .padding(8)
+  }
+}
+
+private struct PackageListView: View {
+  enum Action {
+    case uninstall(Package)
+  }
+
+  let packages: [Package]
+  let action: (Action) -> Void
+
+  var body: some View {
+    List {
+      Section(header: Text("Formulae")) {
+        ForEach(packages) { package in
+          NavigationLink(destination: PackageDetailView(package: package)) {
+            Text(package.name)
+            Spacer()
+            Text(package.version)
+              .foregroundColor(.secondary)
+          }
+          .contextMenu {
+            Button("Uninstall") {
+              action(.uninstall(package))
+            }
+          }
+        }
+      }
+    }
+    .listStyle(SidebarListStyle())
+  }
+}
+
+private struct PackageRefreshIndicator: View {
   var body: some View {
     VStack {
       Divider()

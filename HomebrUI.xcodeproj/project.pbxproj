@@ -21,7 +21,7 @@
 		94E38D4E258B428B00747B04 /* SidebarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94E38D4D258B428B00747B04 /* SidebarView.swift */; };
 		94E4A247258980C400CC1C7D /* HomebrewModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94E4A246258980C400CC1C7D /* HomebrewModels.swift */; };
 		94E4A24A2589A3D400CC1C7D /* PackageRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94E4A2492589A3D400CC1C7D /* PackageRepository.swift */; };
-		94E4A24E2589BD1F00CC1C7D /* PackageListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94E4A24D2589BD1F00CC1C7D /* PackageListView.swift */; };
+		94E4A24E2589BD1F00CC1C7D /* InstalledPackagesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94E4A24D2589BD1F00CC1C7D /* InstalledPackagesView.swift */; };
 		94E4A2522589BD3A00CC1C7D /* Input.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94E4A2512589BD3A00CC1C7D /* Input.swift */; };
 		94E4A2562589BD9600CC1C7D /* PackageDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94E4A2552589BD9600CC1C7D /* PackageDetailView.swift */; };
 		94E4A25C2589C9A500CC1C7D /* Package.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94E4A25B2589C9A500CC1C7D /* Package.swift */; };
@@ -46,7 +46,7 @@
 		94E38D4D258B428B00747B04 /* SidebarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SidebarView.swift; sourceTree = "<group>"; };
 		94E4A246258980C400CC1C7D /* HomebrewModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomebrewModels.swift; sourceTree = "<group>"; };
 		94E4A2492589A3D400CC1C7D /* PackageRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PackageRepository.swift; sourceTree = "<group>"; };
-		94E4A24D2589BD1F00CC1C7D /* PackageListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PackageListView.swift; sourceTree = "<group>"; };
+		94E4A24D2589BD1F00CC1C7D /* InstalledPackagesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InstalledPackagesView.swift; sourceTree = "<group>"; };
 		94E4A2512589BD3A00CC1C7D /* Input.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Input.swift; sourceTree = "<group>"; };
 		94E4A2552589BD9600CC1C7D /* PackageDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PackageDetailView.swift; sourceTree = "<group>"; };
 		94E4A25B2589C9A500CC1C7D /* Package.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Package.swift; sourceTree = "<group>"; };
@@ -125,7 +125,7 @@
 				94E4A2512589BD3A00CC1C7D /* Input.swift */,
 				94C12122258B22700014E558 /* OperationInfoView.swift */,
 				94E4A2552589BD9600CC1C7D /* PackageDetailView.swift */,
-				94E4A24D2589BD1F00CC1C7D /* PackageListView.swift */,
+				94E4A24D2589BD1F00CC1C7D /* InstalledPackagesView.swift */,
 				94E38D4D258B428B00747B04 /* SidebarView.swift */,
 			);
 			path = Views;
@@ -211,7 +211,7 @@
 			files = (
 				94E615AA258ABFAA000D432C /* AsyncOperation.swift in Sources */,
 				94E4A24A2589A3D400CC1C7D /* PackageRepository.swift in Sources */,
-				94E4A24E2589BD1F00CC1C7D /* PackageListView.swift in Sources */,
+				94E4A24E2589BD1F00CC1C7D /* InstalledPackagesView.swift in Sources */,
 				94E4A2562589BD9600CC1C7D /* PackageDetailView.swift in Sources */,
 				94E4A25C2589C9A500CC1C7D /* Package.swift in Sources */,
 				9421EF23258AF77600C0EC8B /* HomebrewConfiguration.swift in Sources */,

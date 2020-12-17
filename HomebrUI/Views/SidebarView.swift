@@ -8,8 +8,8 @@ struct SidebarView: View {
       List {
         Group {
           NavigationLink(
-            destination: PackageListView(
-              viewModel: PackageListViewModel(repository: repository)
+            destination: InstalledPackagesView(
+              viewModel: InstalledPackagesViewModel(repository: repository)
             )
           ) {
             Label("Installed", systemImage: "shippingbox")
