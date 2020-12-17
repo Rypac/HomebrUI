@@ -4,7 +4,7 @@ import Foundation
 class PackageRepository {
   private enum PackageState {
     case empty
-    case loaded([Package])
+    case loaded(InstalledPackages)
   }
 
   private enum RefreshState {
@@ -40,26 +40,34 @@ class PackageRepository {
             }
           )
           .compactMap { info in
-            info.formulae.compactMap { formulae in
-              guard let installedPackage = formulae.installed.first, installedPackage.installedOnRequest else {
-                return nil
+            InstalledPackages(
+              formulae: info.formulae.compactMap { formulae in
+                guard let installedPackage = formulae.installed.first, installedPackage.installedOnRequest else {
+                  return nil
+                }
+                return Package(
+                  name: formulae.name,
+                  version: installedPackage.version
+                )
+              },
+              casks: info.casks.compactMap { cask in
+                Package(
+                  name: cask.name.first ?? cask.token,
+                  version: cask.version
+                )
               }
-              return Package(
-                name: formulae.name,
-                version: installedPackage.version
-              )
-            }
+            )
           }
           .catch { _ in
-            Just([])
+            Just(InstalledPackages(formulae: [], casks: []))
           }
       }
       .switchToLatest()
       .receive(on: DispatchQueue.main)
       .sink(
         receiveCompletion: { _ in },
-        receiveValue: { packages in
-          self.packageState.send(.loaded(packages))
+        receiveValue: { installedPackages in
+          self.packageState.send(.loaded(installedPackages))
         }
       )
       .store(in: &cancellables)
@@ -94,7 +102,7 @@ extension PackageRepository {
     homebrew.operationPublisher
   }
 
-  var packages: AnyPublisher<[Package], Never> {
+  var packages: AnyPublisher<InstalledPackages, Never> {
     packageState
       .compactMap {
         guard case let .loaded(packages) = $0 else {

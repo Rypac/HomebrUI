@@ -3,13 +3,13 @@ import SwiftUI
 
 class InstalledPackagesViewModel: ObservableObject {
   struct Environment {
-    var packages: AnyPublisher<[Package], Never>
+    var packages: AnyPublisher<InstalledPackages, Never>
     var isRefreshing: AnyPublisher<Bool, Never>
     var uninstall: (Package) -> Void
   }
 
   @Published private(set) var isRefreshing: Bool = false
-  @Published private(set) var packages: [Package] = []
+  @Published private(set) var packages: InstalledPackages = InstalledPackages(formulae: [], casks: [])
 
   @Input var query: String = ""
 
@@ -28,9 +28,14 @@ class InstalledPackagesViewModel: ObservableObject {
         if query.isEmpty {
           return packages
         }
-        return packages.filter { package in
-          package.name.localizedCaseInsensitiveContains(query)
-        }
+        return InstalledPackages(
+          formulae: packages.formulae.filter { package in
+            package.name.localizedCaseInsensitiveContains(query)
+          },
+          casks: packages.casks.filter { package in
+            package.name.localizedCaseInsensitiveContains(query)
+          }
+        )
       }
       .receive(on: DispatchQueue.main)
       .assign(to: &$packages)
@@ -92,28 +97,40 @@ private struct PackageListView: View {
     case uninstall(Package)
   }
 
-  let packages: [Package]
+  let packages: InstalledPackages
   let action: (Action) -> Void
 
   var body: some View {
     List {
-      Section(header: Text("Formulae")) {
-        ForEach(packages) { package in
-          NavigationLink(destination: PackageDetailView(package: package)) {
-            Text(package.name)
-            Spacer()
-            Text(package.version)
-              .foregroundColor(.secondary)
-          }
-          .contextMenu {
-            Button("Uninstall") {
-              action(.uninstall(package))
-            }
-          }
+      if !packages.formulae.isEmpty {
+        Section(header: Text("Formulae")) {
+          ForEach(packages.formulae, content: packageRow)
+        }
+      }
+      if !packages.casks.isEmpty {
+        Section(header: Text("Casks")) {
+          ForEach(packages.casks, content: packageRow)
         }
       }
     }
     .listStyle(SidebarListStyle())
+  }
+
+  private func packageRow(_ package: Package) -> some View {
+    NavigationLink(destination: PackageDetailView(package: package)) {
+      HStack {
+        Text(package.name)
+          .layoutPriority(1)
+        Spacer()
+        Text(package.version)
+          .foregroundColor(.secondary)
+      }
+    }
+    .contextMenu {
+      Button("Uninstall") {
+        action(.uninstall(package))
+      }
+    }
   }
 }
 

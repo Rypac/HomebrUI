@@ -1,5 +1,10 @@
 import Foundation
 
+struct InstalledPackages {
+  var formulae: [Package]
+  var casks: [Package]
+}
+
 struct Package: Equatable {
   var name: String
   var version: String
