@@ -27,16 +27,9 @@ class PackageRepository {
   init(homebrew: Homebrew = Homebrew()) {
     self.homebrew = homebrew
 
-    let refreshAction = actions
-      .compactMap { action -> Void? in
-        guard action == .refresh, self.refreshState.value == .idle else {
-          return nil
-        }
-        return ()
-      }
-
-    refreshAction
-      .flatMap {
+    actions
+      .filter { $0 == .refresh }
+      .map { _ in
         homebrew.listInstalledPackages()
           .handleEvents(
             receiveSubscription: { _ in
@@ -61,6 +54,7 @@ class PackageRepository {
             Just([])
           }
       }
+      .switchToLatest()
       .receive(on: DispatchQueue.main)
       .sink(
         receiveCompletion: { _ in },
