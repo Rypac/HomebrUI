@@ -63,6 +63,11 @@ final class HomebrewOperationQueue {
         }
       }
       .first()
+      .handleEvents(
+        receiveCancel: { [weak self] in
+          self?.cancel(id: id)
+        }
+      )
       .eraseToAnyPublisher()
   }
 
