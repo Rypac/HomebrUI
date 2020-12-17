@@ -17,6 +17,7 @@ struct PackageDetailView: View {
       if let description = package.description {
         Text(description)
       }
+      Link(package.homepage.absoluteString, destination: package.homepage)
       Spacer()
     }
     .padding()

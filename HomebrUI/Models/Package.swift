@@ -12,6 +12,7 @@ struct Package: Identifiable, Equatable {
   var name: String
   var version: String
   var description: String?
+  var homepage: URL
 }
 
 extension Package {
@@ -24,7 +25,8 @@ extension Package {
       id: formulae.name,
       name: formulae.fullName,
       version: installed.version,
-      description: formulae.description
+      description: formulae.description,
+      homepage: formulae.homepage
     )
   }
 
@@ -33,7 +35,8 @@ extension Package {
       id: cask.token,
       name: cask.name.first ?? cask.token,
       version: cask.version,
-      description: cask.description
+      description: cask.description,
+      homepage: cask.homepage
     )
   }
 }

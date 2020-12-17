@@ -12,7 +12,7 @@ struct Formulae: Equatable {
   let aliases: [String]
   let description: String
   let license: String?
-  let homepage: String
+  let homepage: URL
   let versions: FormulaeVersion
   let urls: [String: FormulaeURL]
   let revision: Int
