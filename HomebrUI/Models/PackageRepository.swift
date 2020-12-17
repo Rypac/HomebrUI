@@ -53,8 +53,7 @@ class PackageRepository {
             }
           )
           .compactMap { info in
-            print(info)
-            return info.formulae.compactMap { formulae in
+            info.formulae.compactMap { formulae in
               guard let installedPackage = formulae.installed.first, installedPackage.installedOnRequest else {
                 return nil
               }

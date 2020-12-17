@@ -35,6 +35,12 @@ struct Homebrew {
   }
 }
 
+extension Homebrew {
+  var operation: AnyPublisher<HomebrewOperation, Never> {
+    queue.operation
+  }
+}
+
 extension Homebrew.Configuration {
   static let `default` = Homebrew.Configuration(executablePath: "/usr/local/bin/brew")
 }

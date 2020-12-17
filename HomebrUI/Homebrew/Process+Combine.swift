@@ -13,28 +13,6 @@ struct ProcessResult: Equatable {
 }
 
 extension Process {
-  static func runPublisher(
-    for url: URL,
-    arguments: [String] = [],
-    qualityOfService: QualityOfService = .default,
-    queue: DispatchQueue = .global(qos: .userInitiated)
-  ) -> AnyPublisher<ProcessResult, Error> {
-    Deferred {
-      Future { completion in
-        do {
-          _ = try run(for: url, arguments: arguments, qualityOfService: qualityOfService) { result in
-            completion(.success(result))
-          }
-        } catch {
-          completion(.failure(error))
-        }
-      }
-    }
-    .eraseToAnyPublisher()
-  }
-}
-
-extension Process {
   static func run(
     for url: URL,
     arguments: [String] = [],
