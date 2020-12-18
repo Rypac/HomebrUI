@@ -19,12 +19,7 @@ struct SidebarView: View {
           .tag(SidebarItem.installed)
           NavigationLink(
             destination: SearchPackagesView(
-              viewModel: SearchPackagesViewModel(
-                environment: .init(
-                  search: repository.searchForPackage(withName:),
-                  info: repository.info(for:)
-                )
-              )
+              viewModel: SearchPackagesViewModel(repository: repository)
             )
           ) {
             Label("Search", systemImage: "magnifyingglass")

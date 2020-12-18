@@ -64,6 +64,17 @@ class SearchPackagesViewModel: ObservableObject {
   }
 }
 
+extension SearchPackagesViewModel {
+  convenience init(repository: PackageRepository) {
+    self.init(
+      environment: Environment(
+        search: repository.searchForPackage,
+        info: repository.info
+      )
+    )
+  }
+}
+
 struct SearchPackagesView: View {
   @ObservedObject var viewModel: SearchPackagesViewModel
 
