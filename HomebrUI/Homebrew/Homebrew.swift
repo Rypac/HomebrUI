@@ -23,7 +23,7 @@ struct Homebrew {
       .eraseToAnyPublisher()
   }
 
-  func search(for query: String) -> AnyPublisher<[String], Error> {
+  func search(for query: String) -> AnyPublisher<[HomebrewID], Error> {
     queue.run(.search(query))
       .tryMap { result in
         guard result.status == 0 else {
@@ -37,14 +37,14 @@ struct Homebrew {
             if line.isEmpty || line.starts(with: "==>") {
               return nil
             }
-            return String(line)
+            return HomebrewID(rawValue: String(line))
           }
       }
       .eraseToAnyPublisher()
   }
 
-  func info(for packages: [String]) -> AnyPublisher<HomebrewInfo, Error> {
-    queue.run(.info(packages))
+  func info(for packages: [HomebrewID]) -> AnyPublisher<HomebrewInfo, Error> {
+    queue.run(.info(packages.map(\.rawValue)))
       .tryMap { result in
         guard result.status == 0 else {
           throw HomebrewError(processResult: result)
@@ -54,8 +54,8 @@ struct Homebrew {
       .eraseToAnyPublisher()
   }
 
-  func uninstallFormulae(name: String) -> AnyPublisher<String, Error> {
-    queue.run(.uninstall(name))
+  func uninstallFormulae(id: HomebrewID) -> AnyPublisher<String, Error> {
+    queue.run(.uninstall(id.rawValue))
       .tryMap { result in
         guard result.status == 0 else {
           throw HomebrewError(processResult: result)

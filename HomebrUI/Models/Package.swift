@@ -6,7 +6,7 @@ struct InstalledPackages {
 }
 
 struct Package: Identifiable, Equatable {
-  typealias ID = String
+  typealias ID = HomebrewID
 
   let id: ID
   var name: String
@@ -22,8 +22,8 @@ extension Package {
     }
 
     self.init(
-      id: formulae.name,
-      name: formulae.fullName,
+      id: formulae.id,
+      name: formulae.name,
       version: installed.version,
       description: formulae.description,
       homepage: formulae.homepage
@@ -32,8 +32,8 @@ extension Package {
 
   init(cask: Cask) {
     self.init(
-      id: cask.token,
-      name: cask.name.first ?? cask.token,
+      id: cask.id,
+      name: cask.names.first ?? cask.id.rawValue,
       version: cask.version,
       description: cask.description,
       homepage: cask.homepage

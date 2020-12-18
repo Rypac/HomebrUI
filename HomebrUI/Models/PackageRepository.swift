@@ -71,7 +71,7 @@ class PackageRepository {
   }
 
   func uninstall(_ package: Package) {
-    homebrew.uninstallFormulae(name: package.id)
+    homebrew.uninstallFormulae(id: package.id)
       .receive(on: DispatchQueue.main)
       .sink(
         receiveCompletion: { _ in },
@@ -101,41 +101,41 @@ extension PackageRepository {
       .eraseToAnyPublisher()
   }
 
-  func searchForPackage(withName query: String) -> AnyPublisher<[String], Error> {
+  func searchForPackage(withName query: String) -> AnyPublisher<[Package.ID], Error> {
     homebrew.search(for: query)
   }
 
-  func info(for packageName: String) -> AnyPublisher<Package, Error> {
-    info(for: [packageName])
+  func info(for packageID: Package.ID) -> AnyPublisher<Package, Error> {
+    info(for: [packageID])
       .tryMap { packages in
-        guard let package = packages.first(where: { $0.id == packageName }) else {
-          throw PackageInfoError.missingPackage(packageName)
+        guard let package = packages.first(where: { $0.id == packageID }) else {
+          throw PackageInfoError.missingPackage(packageID.rawValue)
         }
         return package
       }
       .eraseToAnyPublisher()
   }
 
-  func info(for packageNames: [String]) -> AnyPublisher<[Package], Error> {
-    homebrew.info(for: packageNames)
+  func info(for packageIDs: [Package.ID]) -> AnyPublisher<[Package], Error> {
+    homebrew.info(for: packageIDs)
       .tryMap { info in
         let fomulae = info.formulae
-          .filter { packageNames.contains($0.name) }
+          .filter { packageIDs.contains($0.id) }
           .map { formulae in
             Package(
-              id: formulae.name,
-              name: formulae.fullName,
+              id: formulae.id,
+              name: formulae.name,
               version: formulae.versions.stable,
               description: formulae.description,
               homepage: formulae.homepage
             )
           }
         let casks = info.casks
-          .filter { packageNames.contains($0.token) }
+          .filter { packageIDs.contains($0.id) }
           .map { cask in
             Package(
-              id: cask.token,
-              name: cask.name.first ?? cask.token,
+              id: cask.id,
+              name: cask.names.first ?? cask.id.rawValue,
               version: cask.version,
               description: cask.description,
               homepage: cask.homepage
@@ -144,9 +144,9 @@ extension PackageRepository {
 
         let packages = fomulae + casks
 
-        guard packages.count == packageNames.count else {
+        guard packages.count == packageIDs.count else {
           throw PackageInfoError.invalidPackageCount(
-            expected: packageNames.count,
+            expected: packageIDs.count,
             actual: packages.count
           )
         }

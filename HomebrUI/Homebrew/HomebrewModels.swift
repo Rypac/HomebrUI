@@ -1,13 +1,27 @@
 import Foundation
 
+struct HomebrewID: Equatable, Hashable, Codable, RawRepresentable {
+  var rawValue: String
+
+  init(rawValue: String) {
+    self.rawValue = rawValue
+  }
+}
+
+extension HomebrewID: CustomStringConvertible {
+  var description: String {
+    String(describing: rawValue)
+  }
+}
+
 struct HomebrewInfo: Equatable, Codable {
   let formulae: [Formulae]
   let casks: [Cask]
 }
 
-struct Formulae: Equatable {
+struct Formulae: Equatable, Identifiable {
+  let id: HomebrewID
   let name: String
-  let fullName: String
   let oldName: String?
   let aliases: [String]
   let description: String
@@ -56,8 +70,8 @@ struct InstalledPackage: Equatable {
 
 extension Formulae: Codable {
   enum CodingKeys: String, CodingKey {
-    case name
-    case fullName = "full_name"
+    case id = "name"
+    case name = "full_name"
     case oldName = "oldname"
     case aliases
     case description = "desc"
@@ -97,9 +111,9 @@ extension InstalledPackage.Dependency: Codable {
   }
 }
 
-struct Cask: Equatable {
-  let token: String
-  let name: [String]
+struct Cask: Equatable, Identifiable {
+  let id: HomebrewID
+  let names: [String]
   let description: String?
   let homepage: URL
   let url: URL
@@ -111,8 +125,8 @@ struct Cask: Equatable {
 
 extension Cask: Codable {
   enum CodingKeys: String, CodingKey {
-    case token
-    case name
+    case id = "token"
+    case names = "name"
     case description = "desc"
     case homepage
     case url

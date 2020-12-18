@@ -1,16 +1,21 @@
 import Combine
 import SwiftUI
 
+struct SearchResult: Identifiable {
+  let id: Package.ID
+  var name: String { id.rawValue }
+}
+
 class SearchPackagesViewModel: ObservableObject {
   struct Environment {
-    var search: (String) -> AnyPublisher<[String], Error>
-    var info: (String) -> AnyPublisher<Package, Error>
+    var search: (String) -> AnyPublisher<[Package.ID], Error>
+    var info: (Package.ID) -> AnyPublisher<Package, Error>
   }
 
   enum State {
     case empty
     case loading
-    case loaded([String])
+    case loaded([SearchResult])
   }
 
   @Published private(set) var state: State = .empty
@@ -34,7 +39,7 @@ class SearchPackagesViewModel: ObservableObject {
           return .just(.empty)
         }
         return environment.search(query)
-          .map(State.loaded)
+          .map { .loaded($0.map(SearchResult.init)) }
           .prepend(.loading)
           .catch { _ in Just(.empty) }
           .eraseToAnyPublisher()
@@ -48,8 +53,8 @@ class SearchPackagesViewModel: ObservableObject {
     executeSearch.send()
   }
 
-  func showInfo(forPackage package: String) -> AnyPublisher<Package, Error> {
-    environment.info(package)
+  func showInfo(forResult searchResult: SearchResult) -> AnyPublisher<Package, Error> {
+    environment.info(searchResult.id)
   }
 }
 
@@ -65,7 +70,7 @@ struct SearchPackagesView: View {
       case .loading:
         SearchLoadingView()
       case .loaded(let results):
-        SearchResultsView(results: results, loadPackage: viewModel.showInfo(forPackage:))
+        SearchResultsView(results: results, loadPackage: viewModel.showInfo(forResult:))
       }
     }
   }
@@ -101,13 +106,13 @@ private struct SearchLoadingView: View {
 }
 
 private struct SearchResultsView: View {
-  let results: [String]
-  let loadPackage: (String) -> AnyPublisher<Package, Error>
+  let results: [SearchResult]
+  let loadPackage: (SearchResult) -> AnyPublisher<Package, Error>
 
   var body: some View {
-    List(results, id: \.self) { result in
+    List(results) { result in
       NavigationLink(
-        result,
+        result.name,
         destination: PackageDetailView(
           viewModel: PackageDetailViewModel(
             environment: .init(package: loadPackage(result))
