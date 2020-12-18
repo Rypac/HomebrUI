@@ -107,15 +107,11 @@ private struct PackageListView: View {
 
   var body: some View {
     List {
-      if !packages.formulae.isEmpty {
-        Section(header: Text("Formulae")) {
-          ForEach(packages.formulae, content: packageRow)
-        }
+      Section(header: Text("Formulae")) {
+        ForEach(packages.formulae, content: packageRow)
       }
-      if !packages.casks.isEmpty {
-        Section(header: Text("Casks")) {
-          ForEach(packages.casks, content: packageRow)
-        }
+      Section(header: Text("Casks")) {
+        ForEach(packages.casks, content: packageRow)
       }
     }
     .listStyle(SidebarListStyle())
