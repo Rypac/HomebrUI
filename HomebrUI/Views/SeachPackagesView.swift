@@ -16,6 +16,8 @@ class SearchPackagesViewModel: ObservableObject {
     case empty
     case loading
     case loaded([SearchResult])
+    case noResults
+    case error(String)
   }
 
   @Published private(set) var state: State = .empty
@@ -33,15 +35,19 @@ class SearchPackagesViewModel: ObservableObject {
 
     Publishers
       .Merge(clearQuery, executeQuery)
-      .removeDuplicates()
       .map { query -> AnyPublisher<State, Never> in
         if query.isEmpty {
           return .just(.empty)
         }
         return environment.search(query)
-          .map { .loaded($0.map(SearchResult.init)) }
+          .map { results in
+            guard !results.isEmpty else {
+              return .noResults
+            }
+            return .loaded(results.map(SearchResult.init))
+          }
           .prepend(.loading)
-          .catch { _ in Just(.empty) }
+          .catch { _ in Just(.error("Failed to load results")) }
           .eraseToAnyPublisher()
       }
       .switchToLatest()
@@ -71,7 +77,12 @@ struct SearchPackagesView: View {
         SearchLoadingView()
       case .loaded(let results):
         SearchResultsView(results: results, loadPackage: viewModel.showInfo(forResult:))
+      case .noResults:
+        NoSearchResultsView()
+      case .error(let message):
+        FailedToLoadSearchResultsView(message: message, retry: viewModel.search)
       }
+      Spacer()
     }
   }
 }
@@ -93,7 +104,6 @@ private struct SearchInfoView: View {
   var body: some View {
     Spacer()
     Text("Search for a Homebrew package")
-    Spacer()
   }
 }
 
@@ -101,7 +111,6 @@ private struct SearchLoadingView: View {
   var body: some View {
     Spacer()
     ProgressView()
-    Spacer()
   }
 }
 
@@ -120,6 +129,23 @@ private struct SearchResultsView: View {
         )
       )
     }
+  }
+}
+
+private struct NoSearchResultsView: View {
+  var body: some View {
     Spacer()
+    Text("No packages found")
+  }
+}
+
+private struct FailedToLoadSearchResultsView: View {
+  let message: String
+  let retry: () -> Void
+
+  var body: some View {
+    Spacer()
+    Text(message)
+    Button("Retry", action: retry)
   }
 }

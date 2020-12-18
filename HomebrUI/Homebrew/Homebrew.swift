@@ -27,7 +27,11 @@ struct Homebrew {
     queue.run(.search(query))
       .tryMap { result in
         guard result.status == 0 else {
-          throw HomebrewError(processResult: result)
+          let errorMessage = String(decoding: result.standardError, as: UTF8.self)
+          guard errorMessage.hasPrefix("Error: No formulae or casks found for") else {
+            throw HomebrewError(processResult: result)
+          }
+          return []
         }
 
         return String(decoding: result.standardOutput, as: UTF8.self)
