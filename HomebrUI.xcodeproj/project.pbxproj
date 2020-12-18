@@ -22,6 +22,7 @@
 		94B042A82589672700222EEF /* Homebrew.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94B042A72589672700222EEF /* Homebrew.swift */; };
 		94B042AB2589708500222EEF /* Process.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94B042AA2589708500222EEF /* Process.swift */; };
 		94C12123258B22700014E558 /* OperationInfoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94C12122258B22700014E558 /* OperationInfoView.swift */; };
+		94DB828E258C330F0071F8A8 /* OperationRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94DB828D258C330F0071F8A8 /* OperationRepository.swift */; };
 		94E38D4E258B428B00747B04 /* SidebarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94E38D4D258B428B00747B04 /* SidebarView.swift */; };
 		94E4A247258980C400CC1C7D /* HomebrewModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94E4A246258980C400CC1C7D /* HomebrewModels.swift */; };
 		94E4A24A2589A3D400CC1C7D /* PackageRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94E4A2492589A3D400CC1C7D /* PackageRepository.swift */; };
@@ -51,6 +52,7 @@
 		94B042A72589672700222EEF /* Homebrew.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Homebrew.swift; sourceTree = "<group>"; };
 		94B042AA2589708500222EEF /* Process.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Process.swift; sourceTree = "<group>"; };
 		94C12122258B22700014E558 /* OperationInfoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OperationInfoView.swift; sourceTree = "<group>"; };
+		94DB828D258C330F0071F8A8 /* OperationRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OperationRepository.swift; sourceTree = "<group>"; };
 		94E38D4D258B428B00747B04 /* SidebarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SidebarView.swift; sourceTree = "<group>"; };
 		94E4A246258980C400CC1C7D /* HomebrewModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomebrewModels.swift; sourceTree = "<group>"; };
 		94E4A2492589A3D400CC1C7D /* PackageRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PackageRepository.swift; sourceTree = "<group>"; };
@@ -164,6 +166,7 @@
 			children = (
 				94E4A25B2589C9A500CC1C7D /* Package.swift */,
 				94E4A2492589A3D400CC1C7D /* PackageRepository.swift */,
+				94DB828D258C330F0071F8A8 /* OperationRepository.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -242,6 +245,7 @@
 				94E4A24E2589BD1F00CC1C7D /* InstalledPackagesView.swift in Sources */,
 				9417F099258C123C008679E8 /* AppCommands.swift in Sources */,
 				94E4A2562589BD9600CC1C7D /* PackageDetailView.swift in Sources */,
+				94DB828E258C330F0071F8A8 /* OperationRepository.swift in Sources */,
 				94E4A25C2589C9A500CC1C7D /* Package.swift in Sources */,
 				9421EF23258AF77600C0EC8B /* HomebrewConfiguration.swift in Sources */,
 				9409BC3F258C120700A95B9A /* ViewCommands.swift in Sources */,

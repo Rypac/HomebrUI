@@ -4,7 +4,7 @@ import SwiftUI
 
 class OperationInfoViewModel: ObservableObject {
   struct Environment {
-    var operation: AnyPublisher<HomebrewOperation, Never>
+    var operations: AnyPublisher<[HomebrewOperation], Never>
   }
 
   struct Operation: Identifiable {
@@ -18,29 +18,23 @@ class OperationInfoViewModel: ObservableObject {
   @Published private(set) var operations: [Operation] = []
 
   init(environment: Environment) {
-    environment.operation
-      .scan([]) { operations, operation in
-        let newOperation = Operation(
-          id: operation.id,
-          name: operation.command.name,
-          status: operation.status.name
-        )
-        var ops = operations
-        if let index = ops.firstIndex(where: { $0.id == operation.id }) {
-          ops[index] = newOperation
-        } else {
-          ops.append(newOperation)
+    environment.operations
+      .map { operations in
+        operations.map { operation in
+          Operation(
+            id: operation.id,
+            name: operation.command.name,
+            status: operation.status.name
+          )
         }
-        return ops
       }
-      .receive(on: DispatchQueue.main)
       .assign(to: &$operations)
   }
 }
 
 extension OperationInfoViewModel {
-  convenience init(repository: PackageRepository) {
-    self.init(environment: Environment(operation: repository.operationPublisher))
+  convenience init(repository: OperationRepository) {
+    self.init(environment: Environment(operations: repository.operations))
   }
 }
 

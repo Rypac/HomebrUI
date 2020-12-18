@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct ToolbarView: ToolbarContent {
-  let repository: PackageRepository
+  let repository: OperationRepository
 
   @Binding var isInfoPopoverPresented: Bool
 

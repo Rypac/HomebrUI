@@ -13,7 +13,8 @@ struct HomebrewOperation: Identifiable {
 
   let id: ID
   let command: HomebrewCommand
-  let status: Status
+  let started: Date
+  var status: Status
 }
 
 // Homebrew does not allow for concurrent running of commands so all operations
@@ -30,9 +31,11 @@ final class HomebrewOperationQueue {
   private let operationSubject = CurrentValueSubject<HomebrewOperation?, Never>(nil)
 
   private let configuration: HomebrewConfiguration
+  private let now: () -> Date
 
-  init(configuration: HomebrewConfiguration = .default) {
+  init(configuration: HomebrewConfiguration = .default, now: @escaping () -> Date = Date.init) {
     self.configuration = configuration
+    self.now = now
   }
 
   deinit {
@@ -74,10 +77,9 @@ final class HomebrewOperationQueue {
   @discardableResult
   func enqueue(_ command: HomebrewCommand) -> HomebrewOperation.ID {
     let id = HomebrewOperation.ID()
+    let operation = HomebrewOperation(id: id, command: command, started: now(), status: .queued)
 
-    operationSubject.send(
-      HomebrewOperation(id: id, command: command, status: .queued)
-    )
+    operationSubject.send(operation)
 
     Self.queue.addOperation(
       ProcessOperation(
@@ -85,19 +87,19 @@ final class HomebrewOperationQueue {
         url: URL(fileURLWithPath: configuration.executablePath),
         arguments: command.arguments,
         startHandler: { [operationSubject] in
-          operationSubject.send(
-            HomebrewOperation(id: id, command: command, status: .running)
-          )
+          var operation = operation
+          operation.status = .running
+          operationSubject.send(operation)
         },
         cancellationHandler: { [operationSubject] in
-          operationSubject.send(
-            HomebrewOperation(id: id, command: command, status: .cancelled)
-          )
+          var operation = operation
+          operation.status = .cancelled
+          operationSubject.send(operation)
         },
         completionHandler: {  [operationSubject] result in
-          operationSubject.send(
-            HomebrewOperation(id: id, command: command, status: .completed(result))
-          )
+          var operation = operation
+          operation.status = .completed(result)
+          operationSubject.send(operation)
         }
       )
     )

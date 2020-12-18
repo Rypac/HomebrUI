@@ -24,7 +24,7 @@ class PackageRepository {
 
   private var cancellables = Set<AnyCancellable>()
 
-  init(homebrew: Homebrew = Homebrew()) {
+  init(homebrew: Homebrew) {
     self.homebrew = homebrew
 
     actions
@@ -85,10 +85,6 @@ class PackageRepository {
 }
 
 extension PackageRepository {
-  var operationPublisher: AnyPublisher<HomebrewOperation, Never> {
-    homebrew.operationPublisher
-  }
-
   var packages: AnyPublisher<InstalledPackages, Never> {
     packageState
       .compactMap {
