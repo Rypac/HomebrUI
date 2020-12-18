@@ -8,8 +8,12 @@ class InstalledPackagesViewModel: ObservableObject {
     var uninstall: (Package) -> Void
   }
 
-  @Published private(set) var isRefreshing: Bool = false
-  @Published private(set) var packages: InstalledPackages = InstalledPackages(formulae: [], casks: [])
+  enum State {
+    case loading
+    case loaded(InstalledPackages, refreshing: Bool)
+  }
+
+  @Published private(set) var packageState: State = .loading
 
   @Input var query: String = ""
 
@@ -17,10 +21,6 @@ class InstalledPackagesViewModel: ObservableObject {
 
   init(environment: Environment) {
     self.environment = environment
-
-    environment.isRefreshing
-      .receive(on: DispatchQueue.main)
-      .assign(to: &$isRefreshing)
 
     Publishers
       .CombineLatest(environment.packages, $query.removeDuplicates())
@@ -37,8 +37,10 @@ class InstalledPackagesViewModel: ObservableObject {
           }
         )
       }
+      .combineLatest(environment.isRefreshing)
+      .map(State.loaded)
       .receive(on: DispatchQueue.main)
-      .assign(to: &$packages)
+      .assign(to: &$packageState)
   }
 
   func uninstall(package: Package) {
@@ -65,21 +67,26 @@ struct InstalledPackagesView: View {
 
   var body: some View {
     VStack(spacing: 0) {
-      PackageFilterView(query: $viewModel.query)
-      PackageListView(
-        packages: viewModel.packages,
-        action: { action in
-          switch action {
-          case .viewHomepage(let package):
-            openURL(package.homepage)
-          case .uninstall(let package):
-            viewModel.uninstall(package: package)
+      switch viewModel.packageState {
+      case .loading:
+        ProgressView()
+      case let .loaded(packages, isRefreshing):
+        PackageFilterView(query: $viewModel.query)
+        PackageListView(
+          packages: packages,
+          action: { action in
+            switch action {
+            case .viewHomepage(let package):
+              openURL(package.homepage)
+            case .uninstall(let package):
+              viewModel.uninstall(package: package)
+            }
           }
+        )
+        Spacer(minLength: 0)
+        if isRefreshing {
+          PackageRefreshIndicator()
         }
-      )
-      Spacer(minLength: 0)
-      if viewModel.isRefreshing {
-        PackageRefreshIndicator()
       }
     }
     .frame(minWidth: 250, maxWidth: 300)
