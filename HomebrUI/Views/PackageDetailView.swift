@@ -15,17 +15,28 @@ class PackageDetailViewModel: ObservableObject {
 
   @Published private(set) var state: State = .empty
 
+  private let load = PassthroughSubject<Void, Never>()
+
   init(environment: Environment) {
-    environment.package
-      .map(State.loaded)
-      .catch { _ in Just(.error("Failed to load package")) }
-      .prepend(.loading)
+    load
+      .removeDuplicates(by: { _, _ in true })
+      .map {
+        environment.package
+          .map(State.loaded)
+          .catch { _ in Just(.error("Failed to load package")) }
+          .prepend(.loading)
+      }
+      .switchToLatest()
       .receive(on: DispatchQueue.main)
       .assign(to: &$state)
   }
 
   init(package: Package) {
     state = .loaded(package)
+  }
+
+  func loadPackage() {
+    load.send()
   }
 }
 
@@ -36,6 +47,9 @@ struct PackageDetailView: View {
     switch viewModel.state {
     case .empty:
       PackageDetailPlaceholderView()
+        .onAppear {
+          viewModel.loadPackage()
+        }
     case .loading:
       LoadingPackageDetailView()
     case .loaded(let package):
