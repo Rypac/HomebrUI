@@ -117,11 +117,11 @@ private struct PackageListView: View {
       Section(header: Text("Formulae")) {
         ForEach(packages.formulae, content: packageRow)
       }
+      Divider()
       Section(header: Text("Casks")) {
         ForEach(packages.casks, content: packageRow)
       }
     }
-    .listStyle(SidebarListStyle())
   }
 
   private func packageRow(_ package: Package) -> some View {
@@ -136,6 +136,7 @@ private struct PackageListView: View {
         Spacer()
         Text(package.version)
           .foregroundColor(.secondary)
+          .lineLimit(1)
       }
     }
     .contextMenu {
