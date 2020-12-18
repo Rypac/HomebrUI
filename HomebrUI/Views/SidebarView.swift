@@ -17,7 +17,13 @@ struct SidebarView: View {
             Label("Installed", systemImage: "shippingbox")
           }
           .tag(SidebarItem.installed)
-          NavigationLink(destination: EmptyView()) {
+          NavigationLink(
+            destination: SearchPackagesView(
+              viewModel: SearchPackagesViewModel(
+                environment: .init(search: repository.homebrew.search(for:))
+              )
+            )
+          ) {
             Label("Search", systemImage: "magnifyingglass")
           }
           .tag(SidebarItem.search)

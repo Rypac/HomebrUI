@@ -20,7 +20,8 @@ class PackageRepository {
   private let refreshState = CurrentValueSubject<RefreshState, Never>(.idle)
 
   private let actions = PassthroughSubject<Action, Never>()
-  private let homebrew: Homebrew
+
+  let homebrew: Homebrew
 
   private var cancellables = Set<AnyCancellable>()
 

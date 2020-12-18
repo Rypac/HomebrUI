@@ -23,6 +23,26 @@ struct Homebrew {
       .eraseToAnyPublisher()
   }
 
+  func search(for query: String) -> AnyPublisher<[String], Error> {
+    queue.run(.search(query))
+      .tryMap { result in
+        guard result.status == 0 else {
+          throw HomebrewError(processResult: result)
+        }
+
+        return String(decoding: result.standardOutput, as: UTF8.self)
+          .split(separator: "\n")
+          .compactMap { line in
+            // Ignore any empty lines and dividers between Formulae and Casks
+            if line.isEmpty || line.starts(with: "==>") {
+              return nil
+            }
+            return String(line)
+          }
+      }
+      .eraseToAnyPublisher()
+  }
+
   func uninstallFormulae(name: String) -> AnyPublisher<String, Error> {
     queue.run(.uninstall(name))
       .tryMap { result in

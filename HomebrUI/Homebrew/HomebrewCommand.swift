@@ -3,6 +3,7 @@ import Foundation
 enum HomebrewCommand {
   case list
   case info(String)
+  case search(String)
   case update
   case upgrade(HomebrewUpgradeStrategy)
   case uninstall(String)
@@ -20,6 +21,8 @@ extension HomebrewCommand {
       return ["info", "--json=v2", "--installed"]
     case .info(let formulae):
       return ["info", "--json=v2", formulae]
+    case .search(let query):
+      return ["search", query]
     case .update:
       return ["update"]
     case .upgrade(.all):

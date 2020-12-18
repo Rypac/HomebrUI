@@ -60,6 +60,7 @@ private extension HomebrewCommand {
     switch self {
     case .list: return "Refreshing packages"
     case .info(let package): return "Getting info for \"\(package)\""
+    case .search(let query): return "Searching for \"\(query)\""
     case .uninstall(let package): return "Uninstalling \"\(package)\""
     case .update: return "Updating packages"
     case .upgrade(.all): return "Upgrading all packages"
