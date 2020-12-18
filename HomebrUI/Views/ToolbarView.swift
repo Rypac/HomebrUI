@@ -20,6 +20,7 @@ struct ToolbarView: ToolbarContent {
       .popover(isPresented: $isInfoPopoverPresented) {
         OperationInfoView(viewModel: OperationInfoViewModel(repository: repository))
       }
+      .keyboardShortcut("i", modifiers: .command)
     }
   }
 }
