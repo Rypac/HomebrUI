@@ -19,7 +19,6 @@ class PackageDetailViewModel: ObservableObject {
 
   init(environment: Environment) {
     load
-      .removeDuplicates(by: { _, _ in true })
       .map {
         environment.package
           .map(State.loaded)
@@ -55,7 +54,7 @@ struct PackageDetailView: View {
     case .loaded(let package):
       LoadedPackageDetailView(package: package)
     case .error(let message):
-      Text(message)
+      FailedToLoadPackageView(message: message, retry: viewModel.loadPackage)
     }
   }
 }
@@ -96,5 +95,17 @@ struct PackageDetailPlaceholderView: View {
     Text("Select a Package")
       .font(.callout)
       .foregroundColor(.secondary)
+  }
+}
+
+struct FailedToLoadPackageView: View {
+  let message: String
+  let retry: () -> Void
+
+  var body: some View {
+    VStack {
+      Text(message)
+      Button("Retry", action: retry)
+    }
   }
 }
