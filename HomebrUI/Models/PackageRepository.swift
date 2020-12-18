@@ -18,10 +18,8 @@ class PackageRepository {
 
   private let packageState = CurrentValueSubject<PackageState, Never>(.empty)
   private let refreshState = CurrentValueSubject<RefreshState, Never>(.idle)
-
   private let actions = PassthroughSubject<Action, Never>()
-
-  let homebrew: Homebrew
+  private let homebrew: Homebrew
 
   private var cancellables = Set<AnyCancellable>()
 
@@ -31,7 +29,7 @@ class PackageRepository {
     actions
       .filter { $0 == .refresh }
       .map { _ in
-        homebrew.listInstalledPackages()
+        homebrew.installedPackages()
           .handleEvents(
             receiveSubscription: { _ in
               self.refreshState.send(.refreshing)
@@ -92,7 +90,6 @@ extension PackageRepository {
         guard case let .loaded(packages) = $0 else {
           return nil
         }
-
         return packages
       }
       .eraseToAnyPublisher()
@@ -102,5 +99,74 @@ extension PackageRepository {
     refreshState
       .map { $0 == .refreshing }
       .eraseToAnyPublisher()
+  }
+
+  func searchForPackage(withName query: String) -> AnyPublisher<[String], Error> {
+    homebrew.search(for: query)
+  }
+
+  func info(for packageName: String) -> AnyPublisher<Package, Error> {
+    info(for: [packageName])
+      .tryMap { packages in
+        guard let package = packages.first(where: { $0.id == packageName }) else {
+          throw PackageInfoError.missingPackage(packageName)
+        }
+        return package
+      }
+      .eraseToAnyPublisher()
+  }
+
+  func info(for packageNames: [String]) -> AnyPublisher<[Package], Error> {
+    homebrew.info(for: packageNames)
+      .tryMap { info in
+        let fomulae = info.formulae
+          .filter { packageNames.contains($0.name) }
+          .map { formulae in
+            Package(
+              id: formulae.name,
+              name: formulae.fullName,
+              version: formulae.versions.stable,
+              description: formulae.description,
+              homepage: formulae.homepage
+            )
+          }
+        let casks = info.casks
+          .filter { packageNames.contains($0.token) }
+          .map { cask in
+            Package(
+              id: cask.token,
+              name: cask.name.first ?? cask.token,
+              version: cask.version,
+              description: cask.description,
+              homepage: cask.homepage
+            )
+          }
+
+        let packages = fomulae + casks
+
+        guard packages.count == packageNames.count else {
+          throw PackageInfoError.invalidPackageCount(
+            expected: packageNames.count,
+            actual: packages.count
+          )
+        }
+
+        return packages
+      }
+      .eraseToAnyPublisher()
+  }
+}
+
+private enum PackageInfoError: LocalizedError {
+  case missingPackage(String)
+  case invalidPackageCount(expected: Int, actual: Int)
+
+  var errorDescription: String {
+    switch self {
+    case let .missingPackage(name):
+      return "Missing package \"\(name)\""
+    case let .invalidPackageCount(expected, actual):
+      return "Expected \(expected) packages but received \(actual)"
+    }
   }
 }

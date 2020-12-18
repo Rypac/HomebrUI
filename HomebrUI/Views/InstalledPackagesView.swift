@@ -125,7 +125,11 @@ private struct PackageListView: View {
   }
 
   private func packageRow(_ package: Package) -> some View {
-    NavigationLink(destination: PackageDetailView(package: package)) {
+    NavigationLink(
+      destination: PackageDetailView(
+        viewModel: PackageDetailViewModel(package: package)
+      )
+    ) {
       HStack {
         Text(package.name)
           .layoutPriority(1)

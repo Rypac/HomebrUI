@@ -4,6 +4,7 @@ import SwiftUI
 class SearchPackagesViewModel: ObservableObject {
   struct Environment {
     var search: (String) -> AnyPublisher<[String], Error>
+    var info: (String) -> AnyPublisher<Package, Error>
   }
 
   enum State {
@@ -17,8 +18,11 @@ class SearchPackagesViewModel: ObservableObject {
   @Input var query: String = ""
 
   private let executeSearch = PassthroughSubject<Void, Never>()
+  private let environment: Environment
 
   init(environment: Environment) {
+    self.environment = environment
+
     let clearQuery = $query.filter(\.isEmpty)
     let executeQuery = executeSearch.map { self.query }
 
@@ -43,6 +47,10 @@ class SearchPackagesViewModel: ObservableObject {
   func search() {
     executeSearch.send()
   }
+
+  func showInfo(forPackage package: String) -> AnyPublisher<Package, Error> {
+    environment.info(package)
+  }
 }
 
 struct SearchPackagesView: View {
@@ -57,7 +65,7 @@ struct SearchPackagesView: View {
       case .loading:
         SearchLoadingView()
       case .loaded(let results):
-        SearchResultsView(results: results)
+        SearchResultsView(results: results, loadPackage: viewModel.showInfo(forPackage:))
       }
     }
   }
@@ -94,10 +102,18 @@ private struct SearchLoadingView: View {
 
 private struct SearchResultsView: View {
   let results: [String]
+  let loadPackage: (String) -> AnyPublisher<Package, Error>
 
   var body: some View {
     List(results, id: \.self) { result in
-      Text(result)
+      NavigationLink(
+        result,
+        destination: PackageDetailView(
+          viewModel: PackageDetailViewModel(
+            environment: .init(package: loadPackage(result))
+          )
+        )
+      )
     }
     Spacer()
   }

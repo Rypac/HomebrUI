@@ -12,7 +12,7 @@ struct Homebrew {
     queue.operationPublisher
   }
 
-  func listInstalledPackages() -> AnyPublisher<HomebrewInfo, Error> {
+  func installedPackages() -> AnyPublisher<HomebrewInfo, Error> {
     queue.run(.list)
       .tryMap { result in
         guard result.status == 0 else {
@@ -39,6 +39,17 @@ struct Homebrew {
             }
             return String(line)
           }
+      }
+      .eraseToAnyPublisher()
+  }
+
+  func info(for packages: [String]) -> AnyPublisher<HomebrewInfo, Error> {
+    queue.run(.info(packages))
+      .tryMap { result in
+        guard result.status == 0 else {
+          throw HomebrewError(processResult: result)
+        }
+        return try JSONDecoder().decode(HomebrewInfo.self, from: result.standardOutput)
       }
       .eraseToAnyPublisher()
   }

@@ -53,7 +53,7 @@ final class HomebrewOperationQueue {
   /// Runs a Homebrew command and returns the result of running the command, optionally
   /// completing with an error if the operation is cancelled.
   func run(_ command: HomebrewCommand) -> AnyPublisher<ProcessResult, Error> {
-    let id = enqueue(command)
+    let id = HomebrewOperation.ID()
     return operationSubject
       .tryCompactMap { operation in
         guard let operation = operation, operation.id == id else {
@@ -67,6 +67,9 @@ final class HomebrewOperationQueue {
       }
       .first()
       .handleEvents(
+        receiveSubscription: { [weak self] _ in
+          self?.enqueue(id: id, command: command)
+        },
         receiveCancel: { [weak self] in
           self?.cancel(id: id)
         }
@@ -77,15 +80,31 @@ final class HomebrewOperationQueue {
   @discardableResult
   func enqueue(_ command: HomebrewCommand) -> HomebrewOperation.ID {
     let id = HomebrewOperation.ID()
+    enqueue(id: id, command: command)
+    return id
+  }
+
+  func cancel(id: HomebrewOperation.ID) {
+    if let process = Self.queue.operations.first(where: { ($0 as? ProcessOperation)?.id == id }) {
+      process.cancel()
+    }
+  }
+
+  private func enqueue(id: HomebrewOperation.ID, command: HomebrewCommand) {
+    // Prevent queuing of identical pending commands.
+    if Self.queue.operations.contains(where: { ($0 as? ProcessOperation)?.id == id }) {
+      return
+    }
+
     let operation = HomebrewOperation(id: id, command: command, started: now(), status: .queued)
 
     operationSubject.send(operation)
 
     Self.queue.addOperation(
       ProcessOperation(
-        id: id,
+        id: operation.id,
         url: URL(fileURLWithPath: configuration.executablePath),
-        arguments: command.arguments,
+        arguments: operation.command.arguments,
         startHandler: { [operationSubject] in
           var operation = operation
           operation.status = .running
@@ -103,14 +122,6 @@ final class HomebrewOperationQueue {
         }
       )
     )
-
-    return id
-  }
-
-  func cancel(id: HomebrewOperation.ID) {
-    if let process = Self.queue.operations.first(where: { ($0 as? ProcessOperation)?.id == id }) {
-      process.cancel()
-    }
   }
 }
 

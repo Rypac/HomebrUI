@@ -20,7 +20,10 @@ struct SidebarView: View {
           NavigationLink(
             destination: SearchPackagesView(
               viewModel: SearchPackagesViewModel(
-                environment: .init(search: repository.homebrew.search(for:))
+                environment: .init(
+                  search: repository.searchForPackage(withName:),
+                  info: repository.info(for:)
+                )
               )
             )
           ) {
