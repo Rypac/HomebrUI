@@ -20,21 +20,27 @@ class SearchPackagesViewModel: ObservableObject {
     case error(String)
   }
 
+  enum Action {
+    case search
+    case retry
+  }
+
   @Published private(set) var state: State = .empty
 
   @Input var query: String = ""
 
-  private let executeSearch = PassthroughSubject<Void, Never>()
+  private let actions = PassthroughSubject<Action, Never>()
   private let environment: Environment
 
   init(environment: Environment) {
     self.environment = environment
 
-    let clearQuery = $query.filter(\.isEmpty)
-    let executeQuery = executeSearch.map { self.query }
+    let clearSearch = $query.filter(\.isEmpty)
+    let runSearch = actions.compactMap { $0 == .search ? self.query : nil }.removeDuplicates()
+    let retrySearch = actions.compactMap { $0 == .retry ? self.query : nil }
 
     Publishers
-      .Merge(clearQuery, executeQuery)
+      .Merge3(clearSearch, runSearch, retrySearch)
       .map { query -> AnyPublisher<State, Never> in
         if query.isEmpty {
           return .just(.empty)
@@ -56,7 +62,11 @@ class SearchPackagesViewModel: ObservableObject {
   }
 
   func search() {
-    executeSearch.send()
+    actions.send(.search)
+  }
+
+  func retry() {
+    actions.send(.retry)
   }
 
   func showPackage(forResult searchResult: SearchResult) -> AnyPublisher<Package, Error> {
@@ -91,7 +101,7 @@ struct SearchPackagesView: View {
       case .noResults:
         NoSearchResultsView()
       case .error(let message):
-        FailedToLoadSearchResultsView(message: message, retry: viewModel.search)
+        FailedToLoadSearchResultsView(message: message, retry: viewModel.retry)
       }
       Spacer()
     }
