@@ -9,11 +9,12 @@ class InstalledPackagesViewModel: ObservableObject {
   }
 
   enum State {
+    case empty
     case loading
     case loaded(InstalledPackages, refreshing: Bool)
   }
 
-  @Published private(set) var packageState: State = .loading
+  @Published private(set) var packageState: State = .empty
 
   @Input var query: String = ""
 
@@ -39,6 +40,7 @@ class InstalledPackagesViewModel: ObservableObject {
       }
       .combineLatest(environment.isRefreshing)
       .map(State.loaded)
+      .prepend(.loading)
       .receive(on: DispatchQueue.main)
       .assign(to: &$packageState)
   }
@@ -68,6 +70,9 @@ struct InstalledPackagesView: View {
   var body: some View {
     VStack(spacing: 0) {
       switch viewModel.packageState {
+      case .empty:
+        PackageFilterView(query: $viewModel.query)
+        Spacer()
       case .loading:
         ProgressView()
       case let .loaded(packages, isRefreshing):
