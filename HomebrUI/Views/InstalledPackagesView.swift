@@ -119,12 +119,18 @@ private struct PackageListView: View {
 
   var body: some View {
     List {
-      Section(header: Text("Formulae")) {
-        ForEach(packages.formulae, content: packageRow)
+      if packages.hasFormulae {
+        Section(header: Text("Formulae")) {
+          ForEach(packages.formulae, content: packageRow)
+        }
       }
-      Divider()
-      Section(header: Text("Casks")) {
-        ForEach(packages.casks, content: packageRow)
+      if packages.hasFormulae && packages.hasCasks {
+        Divider()
+      }
+      if packages.hasCasks {
+        Section(header: Text("Casks")) {
+          ForEach(packages.casks, content: packageRow)
+        }
       }
     }
   }
@@ -171,4 +177,9 @@ private struct PackageRefreshIndicator: View {
       .padding(.bottom, 8)
     }
   }
+}
+
+private extension InstalledPackages {
+  var hasFormulae: Bool { !formulae.isEmpty }
+  var hasCasks: Bool { !casks.isEmpty }
 }
