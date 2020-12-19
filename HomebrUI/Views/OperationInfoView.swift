@@ -36,13 +36,14 @@ struct OperationInfoView: View {
   @ObservedObject var viewModel: OperationInfoViewModel
 
   var body: some View {
-    VStack(alignment: .leading) {
+    VStack {
       Text("Homebrew Operations")
       List(viewModel.operations) { operation in
         Text(operation.name)
         Spacer()
         Text(operation.status)
       }
+      .listStyle(SidebarListStyle())
     }
     .padding()
     .frame(minWidth: 350, minHeight: 400)

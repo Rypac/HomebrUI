@@ -14,7 +14,7 @@ class OperationRepository {
         return operations
       }
       .map { operations in
-        operations.values.sorted(by: { $0.started < $1.started })
+        operations.values.sorted(by: { $0.started > $1.started })
       }
       .receive(on: DispatchQueue.main)
       .sink { [accumulatedOperations] operations in
