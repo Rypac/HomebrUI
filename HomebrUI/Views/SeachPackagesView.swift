@@ -89,7 +89,7 @@ struct SearchPackagesView: View {
   @ObservedObject var viewModel: SearchPackagesViewModel
 
   var body: some View {
-    VStack {
+    VStack(spacing: 0) {
       PackageSearchField(query: $viewModel.query, submit: viewModel.search)
       switch viewModel.state {
       case .empty:
@@ -103,7 +103,7 @@ struct SearchPackagesView: View {
       case .error(let message):
         FailedToLoadSearchResultsView(message: message, retry: viewModel.retry)
       }
-      Spacer()
+      Spacer(minLength: 0)
     }
   }
 }
@@ -140,15 +140,19 @@ private struct SearchResultsView: View {
   let loadPackage: (SearchResult) -> AnyPublisher<Package, Error>
 
   var body: some View {
-    List(results) { result in
-      NavigationLink(
-        result.name,
-        destination: PackageDetailView(
-          viewModel: PackageDetailViewModel(
-            environment: .init(package: loadPackage(result))
+    List {
+      Section(header: Text("\(results.count) results")) {
+        ForEach(results) { result in
+          NavigationLink(
+            result.name,
+            destination: PackageDetailView(
+              viewModel: PackageDetailViewModel(
+                environment: .init(package: loadPackage(result))
+              )
+            )
           )
-        )
-      )
+        }
+      }
     }
   }
 }
