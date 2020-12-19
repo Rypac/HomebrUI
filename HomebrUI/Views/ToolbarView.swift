@@ -11,6 +11,7 @@ struct ToolbarView: ToolbarContent {
       Button(action: toggleSidebar) {
         Label("Toggle Sidebar", systemImage: "sidebar.left")
       }
+      .help("Hide or show the Sidebar")
     }
     ToolbarItem(placement: .status) {
       Button {
@@ -24,6 +25,7 @@ struct ToolbarView: ToolbarContent {
         )
       }
       .keyboardShortcut("i", modifiers: .command)
+      .help("Show or hide Hombrew operation info")
     }
   }
 }
