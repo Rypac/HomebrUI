@@ -8,24 +8,22 @@ struct SidebarView: View {
   var body: some View {
     NavigationView {
       List(selection: $selectedSidebarItem) {
-        Group {
-          NavigationLink(
-            destination: InstalledPackagesView(
-              viewModel: InstalledPackagesViewModel(repository: repository)
-            )
-          ) {
-            Label("Installed", systemImage: "shippingbox")
-          }
-          .tag(SidebarItem.installed)
-          NavigationLink(
-            destination: SearchPackagesView(
-              viewModel: SearchPackagesViewModel(repository: repository)
-            )
-          ) {
-            Label("Search", systemImage: "magnifyingglass")
-          }
-          .tag(SidebarItem.search)
+        NavigationLink(
+          destination: InstalledPackagesView(
+            viewModel: InstalledPackagesViewModel(repository: repository)
+          )
+        ) {
+          Label("Installed", systemImage: "shippingbox")
         }
+        .tag(SidebarItem.installed)
+        NavigationLink(
+          destination: SearchPackagesView(
+            viewModel: SearchPackagesViewModel(repository: repository)
+          )
+        ) {
+          Label("Search", systemImage: "magnifyingglass")
+        }
+        .tag(SidebarItem.search)
       }
       .listStyle(SidebarListStyle())
       .navigationTitle("HomebrUI")

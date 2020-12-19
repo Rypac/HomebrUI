@@ -59,7 +59,7 @@ class SearchPackagesViewModel: ObservableObject {
     executeSearch.send()
   }
 
-  func showInfo(forResult searchResult: SearchResult) -> AnyPublisher<Package, Error> {
+  func showPackage(forResult searchResult: SearchResult) -> AnyPublisher<Package, Error> {
     environment.info(searchResult.id)
   }
 }
@@ -87,7 +87,7 @@ struct SearchPackagesView: View {
       case .loading:
         SearchLoadingView()
       case .loaded(let results):
-        SearchResultsView(results: results, loadPackage: viewModel.showInfo(forResult:))
+        SearchResultsView(results: results, loadPackage: viewModel.showPackage)
       case .noResults:
         NoSearchResultsView()
       case .error(let message):
