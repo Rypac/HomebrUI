@@ -1,7 +1,8 @@
+import Combine
 import SwiftUI
 
 struct ToolbarView: ToolbarContent {
-  let repository: OperationRepository
+  let operations: AnyPublisher<[HomebrewOperation], Never>
 
   @Binding var isInfoPopoverPresented: Bool
 
@@ -11,14 +12,16 @@ struct ToolbarView: ToolbarContent {
         Label("Toggle Sidebar", systemImage: "sidebar.left")
       }
     }
-    ToolbarItem {
+    ToolbarItem(placement: .status) {
       Button {
         isInfoPopoverPresented.toggle()
       } label: {
         Label("Info", systemImage: "info.circle")
       }
       .popover(isPresented: $isInfoPopoverPresented) {
-        OperationInfoView(viewModel: OperationInfoViewModel(repository: repository))
+        OperationInfoView(
+          viewModel: OperationInfoViewModel(environment: .init(operations: operations))
+        )
       }
       .keyboardShortcut("i", modifiers: .command)
     }

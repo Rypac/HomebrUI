@@ -20,7 +20,7 @@ struct HomebrUIApp: App {
       SidebarView(repository: packageRepository)
         .toolbar {
           ToolbarView(
-            repository: operationRepository,
+            operations: operationRepository.operations,
             isInfoPopoverPresented: $isInfoPopoverPresented
           )
         }

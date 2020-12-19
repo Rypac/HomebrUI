@@ -32,12 +32,6 @@ class OperationInfoViewModel: ObservableObject {
   }
 }
 
-extension OperationInfoViewModel {
-  convenience init(repository: OperationRepository) {
-    self.init(environment: Environment(operations: repository.operations))
-  }
-}
-
 struct OperationInfoView: View {
   @ObservedObject var viewModel: OperationInfoViewModel
 
