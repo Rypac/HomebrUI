@@ -17,7 +17,7 @@ struct HomebrUIApp: App {
 
   var body: some Scene {
     WindowGroup  {
-      SidebarView(repository: packageRepository)
+      SidebarView(packageRepository: packageRepository, operationRepository: operationRepository)
         .toolbar {
           ToolbarView(
             operations: operationRepository.operations,

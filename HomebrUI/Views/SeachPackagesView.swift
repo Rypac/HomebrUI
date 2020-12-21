@@ -10,6 +10,7 @@ class SearchPackagesViewModel: ObservableObject {
   struct Environment {
     var search: (String) -> AnyPublisher<[Package.ID], Error>
     var info: (Package.ID) -> AnyPublisher<Package, Error>
+    var status: (Package.ID) -> AnyPublisher<PackageStatus?, Never>
     var install: (Package.ID) -> Void
     var uninstall: (Package.ID) -> Void
   }
@@ -75,6 +76,7 @@ class SearchPackagesViewModel: ObservableObject {
     PackageDetailViewModel(
       environment: .init(
         package: environment.info(searchResult.id),
+        status: environment.status(searchResult.id),
         install: environment.install,
         uninstall: environment.uninstall
       )
@@ -83,13 +85,14 @@ class SearchPackagesViewModel: ObservableObject {
 }
 
 extension SearchPackagesViewModel {
-  convenience init(repository: PackageRepository) {
+  convenience init(packageRepository: PackageRepository, operationRepository: OperationRepository) {
     self.init(
       environment: Environment(
-        search: repository.searchForPackage,
-        info: repository.info,
-        install: repository.install,
-        uninstall: repository.uninstall
+        search: packageRepository.searchForPackage,
+        info: packageRepository.info,
+        status: operationRepository.status,
+        install: packageRepository.install,
+        uninstall: packageRepository.uninstall
       )
     )
   }

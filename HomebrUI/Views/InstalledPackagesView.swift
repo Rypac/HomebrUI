@@ -5,6 +5,7 @@ class InstalledPackagesViewModel: ObservableObject {
   struct Environment {
     var packages: AnyPublisher<InstalledPackages, Never>
     var isRefreshing: AnyPublisher<Bool, Never>
+    var status: (Package.ID) -> AnyPublisher<PackageStatus?, Never>
     var install: (Package.ID) -> Void
     var uninstall: (Package.ID) -> Void
   }
@@ -53,23 +54,35 @@ class InstalledPackagesViewModel: ObservableObject {
   func detailViewModel(for package: Package) -> PackageDetailViewModel {
     PackageDetailViewModel(
       environment: .init(
-        package: .just(package),
+        package: environment.packages
+          .compactMap { packages -> Package? in
+            if let formulae = packages.formulae.first(where: { $0.id == package.id }) {
+              return formulae
+            } else if let cask = packages.casks.first(where: { $0.id == package.id }) {
+              return cask
+            }
+            return nil
+          }
+          .prepend(package)
+          .setFailureType(to: Error.self)
+          .eraseToAnyPublisher(),
+        status: environment.status(package.id),
         install: environment.install,
         uninstall: environment.uninstall
-      ),
-      package: package
+      )
     )
   }
 }
 
 extension InstalledPackagesViewModel {
-  convenience init(repository: PackageRepository) {
+  convenience init(packageRepository: PackageRepository, operationRepository: OperationRepository) {
     self.init(
       environment: Environment(
-        packages: repository.packages,
-        isRefreshing: repository.refreshing,
-        install: repository.install,
-        uninstall: repository.uninstall
+        packages: packageRepository.packages,
+        isRefreshing: packageRepository.refreshing,
+        status: operationRepository.status,
+        install: packageRepository.install,
+        uninstall: packageRepository.uninstall
       )
     )
   }
