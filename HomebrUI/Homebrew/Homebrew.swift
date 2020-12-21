@@ -5,7 +5,7 @@ struct Homebrew {
   private let queue: HomebrewOperationQueue
 
   init(configuration: HomebrewConfiguration = .default) {
-    self.queue = HomebrewOperationQueue(configuration: configuration)
+    queue = HomebrewOperationQueue(configuration: configuration)
   }
 
   var operationPublisher: AnyPublisher<HomebrewOperation, Never> {
@@ -48,7 +48,7 @@ struct Homebrew {
   }
 
   func info(for packages: [HomebrewID]) -> AnyPublisher<HomebrewInfo, Error> {
-    queue.run(.info(packages.map(\.rawValue)))
+    queue.run(.info(packages))
       .tryMap { result in
         guard result.status == 0 else {
           throw HomebrewError(processResult: result)
@@ -58,8 +58,8 @@ struct Homebrew {
       .eraseToAnyPublisher()
   }
 
-  func uninstallFormulae(id: HomebrewID) -> AnyPublisher<String, Error> {
-    queue.run(.uninstall(id.rawValue))
+  func uninstallFormulae(ids: [HomebrewID]) -> AnyPublisher<String, Error> {
+    queue.run(.uninstall(ids))
       .tryMap { result in
         guard result.status == 0 else {
           throw HomebrewError(processResult: result)

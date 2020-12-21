@@ -28,7 +28,7 @@ final class HomebrewOperationQueue {
     return queue
   }()
 
-  private let operationSubject = CurrentValueSubject<HomebrewOperation?, Never>(nil)
+  private let operationSubject = PassthroughSubject<HomebrewOperation, Never>()
 
   private let configuration: HomebrewConfiguration
   private let now: () -> Date
@@ -45,9 +45,7 @@ final class HomebrewOperationQueue {
   /// A messsage center style publisher which emits new Homebrew operations and status
   /// changes as they occur.
   var operationPublisher: AnyPublisher<HomebrewOperation, Never> {
-    operationSubject
-      .compactMap { $0 }
-      .eraseToAnyPublisher()
+    operationSubject.eraseToAnyPublisher()
   }
 
   /// Runs a Homebrew command and returns the result of running the command, optionally
@@ -56,7 +54,7 @@ final class HomebrewOperationQueue {
     let id = HomebrewOperation.ID()
     return operationSubject
       .tryCompactMap { operation in
-        guard let operation = operation, operation.id == id else {
+        guard operation.id == id else {
           return nil
         }
         switch operation.status {

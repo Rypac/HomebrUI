@@ -8,6 +8,12 @@ struct HomebrewID: Equatable, Hashable, Codable, RawRepresentable {
   }
 }
 
+extension HomebrewID: ExpressibleByStringLiteral {
+  init(stringLiteral value: StringLiteralType) {
+    rawValue = value
+  }
+}
+
 extension HomebrewID: CustomStringConvertible {
   var description: String {
     String(describing: rawValue)

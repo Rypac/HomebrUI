@@ -38,7 +38,7 @@ class PackageRepository {
               self.refreshState.send(.idle)
             }
           )
-          .compactMap { info in
+          .map { info in
             InstalledPackages(
               formulae: info.formulae.compactMap(Package.init(formulae:)),
               casks: info.casks.map(Package.init(cask:))
@@ -71,7 +71,7 @@ class PackageRepository {
   }
 
   func uninstall(_ package: Package) {
-    homebrew.uninstallFormulae(id: package.id)
+    homebrew.uninstallFormulae(ids: [package.id])
       .receive(on: DispatchQueue.main)
       .sink(
         receiveCompletion: { _ in },
@@ -86,8 +86,8 @@ class PackageRepository {
 extension PackageRepository {
   var packages: AnyPublisher<InstalledPackages, Never> {
     packageState
-      .compactMap {
-        guard case let .loaded(packages) = $0 else {
+      .compactMap { state in
+        guard case let .loaded(packages) = state else {
           return nil
         }
         return packages
@@ -109,7 +109,7 @@ extension PackageRepository {
     info(for: [packageID])
       .tryMap { packages in
         guard let package = packages.first(where: { $0.id == packageID }) else {
-          throw PackageInfoError.missingPackage(packageID.rawValue)
+          throw PackageInfoError.missingPackage(packageID)
         }
         return package
       }
@@ -158,13 +158,13 @@ extension PackageRepository {
 }
 
 private enum PackageInfoError: LocalizedError {
-  case missingPackage(String)
+  case missingPackage(Package.ID)
   case invalidPackageCount(expected: Int, actual: Int)
 
   var errorDescription: String {
     switch self {
-    case let .missingPackage(name):
-      return "Missing package \"\(name)\""
+    case let .missingPackage(id):
+      return "Missing package \"\(id)\""
     case let .invalidPackageCount(expected, actual):
       return "Expected \(expected) packages but received \(actual)"
     }

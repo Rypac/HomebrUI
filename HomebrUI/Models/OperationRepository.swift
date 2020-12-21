@@ -8,7 +8,7 @@ class OperationRepository {
 
   init(homebrew: Homebrew) {
     homebrew.operationPublisher
-      .scan([:] as [HomebrewOperation.ID: HomebrewOperation]) { operations, operation in
+      .scan([HomebrewOperation.ID: HomebrewOperation]()) { operations, operation in
         var operations = operations
         operations[operation.id] = operation
         return operations
@@ -34,13 +34,5 @@ class OperationRepository {
 extension OperationRepository {
   var operations: AnyPublisher<[HomebrewOperation], Never> {
     accumulatedOperations.eraseToAnyPublisher()
-  }
-
-  func operations(for id: HomebrewOperation.ID) -> AnyPublisher<HomebrewOperation, Never> {
-    accumulatedOperations
-      .compactMap { operations in
-        operations.first(where: { $0.id == id })
-      }
-      .eraseToAnyPublisher()
   }
 }
