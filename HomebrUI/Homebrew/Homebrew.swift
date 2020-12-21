@@ -58,6 +58,17 @@ struct Homebrew {
       .eraseToAnyPublisher()
   }
 
+  func installFormulae(ids: [HomebrewID]) -> AnyPublisher<String, Error> {
+    queue.run(.install(ids))
+      .tryMap { result in
+        guard result.status == 0 else {
+          throw HomebrewError(processResult: result)
+        }
+        return String(decoding: result.standardOutput, as: UTF8.self)
+      }
+      .eraseToAnyPublisher()
+  }
+
   func uninstallFormulae(ids: [HomebrewID]) -> AnyPublisher<String, Error> {
     queue.run(.uninstall(ids))
       .tryMap { result in

@@ -30,7 +30,7 @@ private struct PackageCommandsContent: View {
     Section {
       Button("Uninstall") {
         if let package = selectedPackage {
-          repository.uninstall(package)
+          repository.uninstall(id: package.id)
         }
       }
       .keyboardShortcut("⌫", modifiers: [.command])

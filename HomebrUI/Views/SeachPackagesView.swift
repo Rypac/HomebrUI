@@ -10,6 +10,8 @@ class SearchPackagesViewModel: ObservableObject {
   struct Environment {
     var search: (String) -> AnyPublisher<[Package.ID], Error>
     var info: (Package.ID) -> AnyPublisher<Package, Error>
+    var install: (Package.ID) -> Void
+    var uninstall: (Package.ID) -> Void
   }
 
   enum State {
@@ -69,8 +71,14 @@ class SearchPackagesViewModel: ObservableObject {
     actions.send(.retry)
   }
 
-  func showPackage(forResult searchResult: SearchResult) -> AnyPublisher<Package, Error> {
-    environment.info(searchResult.id)
+  func detailViewModel(for searchResult: SearchResult) -> PackageDetailViewModel {
+    PackageDetailViewModel(
+      environment: .init(
+        package: environment.info(searchResult.id),
+        install: environment.install,
+        uninstall: environment.uninstall
+      )
+    )
   }
 }
 
@@ -79,7 +87,9 @@ extension SearchPackagesViewModel {
     self.init(
       environment: Environment(
         search: repository.searchForPackage,
-        info: repository.info
+        info: repository.info,
+        install: repository.install,
+        uninstall: repository.uninstall
       )
     )
   }
@@ -97,7 +107,7 @@ struct SearchPackagesView: View {
       case .loading:
         SearchLoadingView()
       case .loaded(let results):
-        SearchResultsView(results: results, loadPackage: viewModel.showPackage)
+        SearchResultsView(results: results, detailViewModel: viewModel.detailViewModel)
       case .noResults:
         NoSearchResultsView()
       case .error(let message):
@@ -137,7 +147,7 @@ private struct SearchLoadingView: View {
 
 private struct SearchResultsView: View {
   let results: [SearchResult]
-  let loadPackage: (SearchResult) -> AnyPublisher<Package, Error>
+  let detailViewModel: (SearchResult) -> PackageDetailViewModel
 
   var body: some View {
     List {
@@ -145,11 +155,7 @@ private struct SearchResultsView: View {
         ForEach(results) { result in
           NavigationLink(
             result.name,
-            destination: PackageDetailView(
-              viewModel: PackageDetailViewModel(
-                environment: .init(package: loadPackage(result))
-              )
-            )
+            destination: PackageDetailView(viewModel: detailViewModel(result))
           )
         }
       }

@@ -75,12 +75,34 @@ class PackageRepository {
     actions.send(.refresh)
   }
 
-  func uninstall(_ package: Package) {
-    homebrew.uninstallFormulae(ids: [package.id])
+  func install(id: Package.ID) {
+    homebrew.installFormulae(ids: [id])
       .receive(on: DispatchQueue.main)
       .sink(
         receiveCompletion: { _ in },
         receiveValue: { [actions] output in
+          actions.send(.refresh)
+        }
+      )
+      .store(in: &cancellables)
+  }
+
+  func uninstall(id: Package.ID) {
+    homebrew.uninstallFormulae(ids: [id])
+      .receive(on: DispatchQueue.main)
+      .sink(
+        receiveCompletion: { _ in },
+        receiveValue: { [packageState, actions] _ in
+          // Remove locally installed version before refresh occurs.
+          if case var .loaded(packages) = packageState.value {
+            if let index = packages.formulae.firstIndex(where: { $0.id == id }) {
+              packages.formulae[index].installedVersion = nil
+            } else if let index = packages.casks.firstIndex(where: { $0.id == id }) {
+              packages.casks[index].installedVersion = nil
+            }
+            packageState.send(.loaded(packages))
+          }
+
           actions.send(.refresh)
         }
       )
