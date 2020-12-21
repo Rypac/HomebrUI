@@ -1,10 +1,5 @@
 import Foundation
 
-struct InstalledPackages {
-  var formulae: [Package]
-  var casks: [Package]
-}
-
 struct Package: Identifiable, Equatable {
   typealias ID = HomebrewID
 

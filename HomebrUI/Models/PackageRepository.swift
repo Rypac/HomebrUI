@@ -1,6 +1,11 @@
 import Combine
 import Foundation
 
+struct InstalledPackages {
+  var formulae: [Package]
+  var casks: [Package]
+}
+
 class PackageRepository {
   private enum PackageState {
     case empty
@@ -28,14 +33,14 @@ class PackageRepository {
 
     actions
       .filter { $0 == .refresh }
-      .map { _ in
+      .map { [refreshState] _ in
         homebrew.installedPackages()
           .handleEvents(
             receiveSubscription: { _ in
-              self.refreshState.send(.refreshing)
+              refreshState.send(.refreshing)
             },
             receiveCompletion: { _ in
-              self.refreshState.send(.idle)
+              refreshState.send(.idle)
             }
           )
           .map { info in
@@ -55,12 +60,9 @@ class PackageRepository {
       }
       .switchToLatest()
       .receive(on: DispatchQueue.main)
-      .sink(
-        receiveCompletion: { _ in },
-        receiveValue: { installedPackages in
-          self.packageState.send(.loaded(installedPackages))
-        }
-      )
+      .sink { [packageState] installedPackages in
+        packageState.send(.loaded(installedPackages))
+      }
       .store(in: &cancellables)
   }
 
