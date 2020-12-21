@@ -145,9 +145,11 @@ private struct PackageListView: View {
         Text(package.name)
           .layoutPriority(1)
         Spacer()
-        Text(package.version)
-          .foregroundColor(.secondary)
-          .lineLimit(1)
+        if let version = package.installedVersion {
+          Text(version)
+            .foregroundColor(.secondary)
+            .lineLimit(1)
+        }
       }
     }
     .contextMenu {

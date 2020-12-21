@@ -40,7 +40,12 @@ class PackageRepository {
           )
           .map { info in
             InstalledPackages(
-              formulae: info.formulae.compactMap(Package.init(formulae:)),
+              formulae: info.formulae.compactMap { formulae in
+                guard formulae.installed.first?.installedOnRequest == true else {
+                  return nil
+                }
+                return Package(formulae: formulae)
+              },
               casks: info.casks.map(Package.init(cask:))
             )
           }
@@ -119,28 +124,18 @@ extension PackageRepository {
   func info(for packageIDs: [Package.ID]) -> AnyPublisher<[Package], Error> {
     homebrew.info(for: packageIDs)
       .tryMap { info in
-        let fomulae = info.formulae
-          .filter { packageIDs.contains($0.id) }
-          .map { formulae in
-            Package(
-              id: formulae.id,
-              name: formulae.name,
-              version: formulae.versions.stable,
-              description: formulae.description,
-              homepage: formulae.homepage
-            )
+        let fomulae = info.formulae.compactMap { formulae -> Package? in
+          guard packageIDs.contains(formulae.id) else {
+            return nil
           }
-        let casks = info.casks
-          .filter { packageIDs.contains($0.id) }
-          .map { cask in
-            Package(
-              id: cask.id,
-              name: cask.names.first ?? cask.id.rawValue,
-              version: cask.version,
-              description: cask.description,
-              homepage: cask.homepage
-            )
+          return Package(formulae: formulae)
+        }
+        let casks = info.casks.compactMap { cask -> Package? in
+          guard packageIDs.contains(cask.id) else {
+            return nil
           }
+          return Package(cask: cask)
+        }
 
         let packages = fomulae + casks
 

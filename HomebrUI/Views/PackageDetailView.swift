@@ -74,9 +74,11 @@ private struct LoadedPackageDetailView: View {
         Text(package.name)
           .font(.title)
         Spacer()
-        Text(package.version)
-          .font(.headline)
-          .foregroundColor(.secondary)
+        if let version = package.installedVersion {
+          Text(version)
+            .font(.headline)
+            .foregroundColor(.secondary)
+        }
       }
       Divider()
       if let description = package.description {
