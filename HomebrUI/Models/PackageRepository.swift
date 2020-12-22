@@ -19,19 +19,21 @@ class PackageRepository {
 
   private struct ActivityState {
     enum Status { case started, completed, failed }
-    enum Action: Equatable {
-      case install(Status)
-      case uninstall(Status)
-    }
 
-    var id: Package.ID
     var action: Action
+    var status: Status
+  }
+
+  private enum Action: Equatable {
+    case refresh
+    case install(Package.ID)
+    case uninstall(Package.ID)
   }
 
   private let packageState = CurrentValueSubject<PackageState, Never>(.empty)
   private let refreshState = CurrentValueSubject<RefreshState, Never>(.idle)
   private let activityState = PassthroughSubject<ActivityState, Never>()
-  private let refreshAction = PassthroughSubject<Void, Never>()
+  private let actions = PassthroughSubject<Action, Never>()
   private let homebrew: Homebrew
 
   private var cancellables = Set<AnyCancellable>()
@@ -39,8 +41,9 @@ class PackageRepository {
   init(homebrew: Homebrew) {
     self.homebrew = homebrew
 
-    refreshAction
-      .map { [refreshState] in
+    actions
+      .filter { $0 == .refresh }
+      .map { [refreshState] _ in
         homebrew.installedPackages()
           .handleEvents(
             receiveSubscription: { _ in
@@ -72,47 +75,49 @@ class PackageRepository {
       }
       .store(in: &cancellables)
 
-    let installPackage = activityState
-      .compactMap { state -> AnyPublisher<ActivityState, Never>? in
-        guard case .install(.started) = state.action else { return nil }
-        return homebrew.installFormulae(ids: [state.id])
-          .map { _ in ActivityState(id: state.id, action: .install(.completed)) }
-          .catch { _ in Just(ActivityState(id: state.id, action: .install(.failed))) }
-          .prepend(state)
+    let installPackage = actions
+      .compactMap { action -> AnyPublisher<ActivityState, Never>? in
+        guard case let .install(id) = action else { return nil }
+        return homebrew.installFormulae(ids: [id])
+          .map { _ in ActivityState(action: action, status: .completed) }
+          .catch { _ in Just(ActivityState(action: action, status: .failed)) }
+          .prepend(ActivityState(action: action, status: .started))
           .eraseToAnyPublisher()
       }
 
-    let uninstallPackage = activityState
-      .compactMap { state -> AnyPublisher<ActivityState, Never>? in
-        guard case .uninstall(.started) = state.action else { return nil }
-        return homebrew.uninstallFormulae(ids: [state.id])
-          .map { _ in ActivityState(id: state.id, action: .uninstall(.completed)) }
-          .catch { _ in Just(ActivityState(id: state.id, action: .uninstall(.failed))) }
-          .prepend(state)
+    let uninstallPackage = actions
+      .compactMap { action -> AnyPublisher<ActivityState, Never>? in
+        guard case let .uninstall(id) = action else { return nil }
+        return homebrew.uninstallFormulae(ids: [id])
+          .map { _ in ActivityState(action: action, status: .completed) }
+          .catch { _ in Just(ActivityState(action: action, status: .failed)) }
+          .prepend(ActivityState(action: action, status: .started))
           .eraseToAnyPublisher()
       }
 
     Publishers.Merge(installPackage, uninstallPackage)
       .switchToLatest()
-      .sink { [refreshAction, packageState] state in
-        switch state.action {
-        case .install(.completed):
-          refreshAction.send()
-        case .uninstall(.completed):
+      .sink { [actions, packageState, activityState] state in
+        switch (state.action, state.status) {
+        case (.install, .completed):
+          actions.send(.refresh)
+        case let (.uninstall(id), .completed):
           // Remove locally installed version before refresh occurs.
           if case var .loaded(packages) = packageState.value {
-            if let index = packages.formulae.firstIndex(where: { $0.id == state.id }) {
+            if let index = packages.formulae.firstIndex(where: { $0.id == id }) {
               packages.formulae[index].installedVersion = nil
-            } else if let index = packages.casks.firstIndex(where: { $0.id == state.id }) {
+            } else if let index = packages.casks.firstIndex(where: { $0.id == id }) {
               packages.casks[index].installedVersion = nil
             }
             packageState.send(.loaded(packages))
           }
 
-          refreshAction.send()
+          actions.send(.refresh)
         default:
           break
         }
+
+        activityState.send(state)
       }
       .store(in: &cancellables)
   }
@@ -125,15 +130,15 @@ class PackageRepository {
   }
 
   func refresh() {
-    refreshAction.send()
+    actions.send(.refresh)
   }
 
   func install(id: Package.ID) {
-    activityState.send(ActivityState(id: id, action: .install(.started)))
+    actions.send(.install(id))
   }
 
   func uninstall(id: Package.ID) {
-    activityState.send(ActivityState(id: id, action: .uninstall(.started)))
+    actions.send(.uninstall(id))
   }
 }
 
@@ -160,9 +165,10 @@ extension PackageRepository {
   }
 
   func info(for packageID: Package.ID) -> AnyPublisher<PackageDetail, Error> {
-    refreshAction
-      .prepend(())
-      .map { [homebrew] in
+    actions
+      .prepend(.refresh)
+      .filter { $0 == .refresh }
+      .map { [homebrew] _ in
         homebrew.packageInfo(for: [packageID])
           .tryMap { packages in
             guard let package = packages.first(where: { $0.id == packageID }) else {
@@ -174,16 +180,21 @@ extension PackageRepository {
       .switchToLatest()
       .map { [activityState] package in
         activityState
-          .compactMap { $0.id == packageID ? $0.action : nil }
+          .filter { state in
+            switch state.action {
+            case .install(package.id), .uninstall(package.id): return true
+            default: return false
+            }
+          }
           .scan(PackageDetail(package: package, activity: nil)) { detail, state in
             var detail = detail
-            switch state {
-            case .uninstall(.started):
+            switch (state.action, state.status) {
+            case (.uninstall, .started):
               detail.activity = .uninstalling
-            case .uninstall(.completed):
+            case (.uninstall, .completed):
               detail.activity = nil
               detail.package.installedVersion = nil
-            case .install(.started), .install(.completed):
+            case (.install, .started), (.install, .completed):
               detail.activity = .installing
             default:
               detail.activity = nil
