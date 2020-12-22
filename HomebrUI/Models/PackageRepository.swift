@@ -97,6 +97,7 @@ class PackageRepository {
 
     Publishers.Merge(installPackage, uninstallPackage)
       .switchToLatest()
+      .receive(on: DispatchQueue.main)
       .sink { [actions, packageState, activityState] state in
         switch (state.action, state.status) {
         case (.install, .completed):
