@@ -36,12 +36,3 @@ extension OperationRepository {
     accumulatedOperations.eraseToAnyPublisher()
   }
 }
-
-private extension HomebrewOperation.Status {
-  var isRunning: Bool {
-    switch self {
-    case .queued, .running: return true
-    case .completed, .cancelled: return false
-    }
-  }
-}
