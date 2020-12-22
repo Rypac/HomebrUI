@@ -11,6 +11,18 @@ struct Package: Identifiable, Equatable {
   var latestVersion: String
 }
 
+enum PackageActivity {
+  case installing
+  case updating
+  case uninstalling
+}
+
+struct PackageDetail: Identifiable {
+  var id: Package.ID { package.id }
+  var package: Package
+  var activity: PackageActivity?
+}
+
 extension Package {
   var isInstalled: Bool { installedVersion != nil }
 }

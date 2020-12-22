@@ -1,16 +1,9 @@
 import Combine
 import SwiftUI
 
-enum PackageStatus {
-  case installing
-  case updating
-  case uninstalling
-}
-
 class PackageDetailViewModel: ObservableObject {
   struct Environment {
-    var package: AnyPublisher<Package, Error>
-    var status: AnyPublisher<PackageStatus?, Never>
+    var package: AnyPublisher<PackageDetail, Error>
     var install: (Package.ID) -> Void
     var uninstall: (Package.ID) -> Void
   }
@@ -18,7 +11,7 @@ class PackageDetailViewModel: ObservableObject {
   enum State {
     case empty
     case loading
-    case loaded(Package, status: PackageStatus?)
+    case loaded(PackageDetail)
     case error(String)
   }
 
@@ -32,7 +25,6 @@ class PackageDetailViewModel: ObservableObject {
     load
       .map {
         environment.package
-          .combineLatest(environment.status.setFailureType(to: Error.self))
           .map(State.loaded)
           .catch { _ in Just(.error("Failed to load package")) }
           .prepend(.loading)
@@ -65,11 +57,11 @@ struct PackageDetailView: View {
         .onAppear(perform: viewModel.loadPackage)
     case .loading:
       LoadingPackageDetailView()
-    case .loaded(let package, let status):
-      LoadedPackageDetailView(package: package, status: status) { action in
+    case .loaded(let detail):
+      LoadedPackageDetailView(package: detail.package, activity: detail.activity) { action in
         switch action {
-        case .install: viewModel.install(id: package.id)
-        case .uninstall: viewModel.uninstall(id: package.id)
+        case .install: viewModel.install(id: detail.id)
+        case .uninstall: viewModel.uninstall(id: detail.id)
         }
       }
     case .error(let message):
@@ -97,7 +89,7 @@ private struct LoadedPackageDetailView: View {
   }
 
   let package: Package
-  let status: PackageStatus?
+  let activity: PackageActivity?
   let action: (Action) -> Void
 
   var body: some View {
@@ -106,7 +98,7 @@ private struct LoadedPackageDetailView: View {
         Text(package.name)
           .font(.title)
         Spacer()
-        if status == .installing || status == .uninstalling {
+        if activity == .installing || activity == .uninstalling {
           ProgressView()
             .scaleEffect(0.5)
         }
@@ -114,12 +106,12 @@ private struct LoadedPackageDetailView: View {
           ActionButton("Uninstall") {
             action(.uninstall)
           }
-          .disabled(status == .uninstalling)
+          .disabled(activity == .uninstalling)
         } else {
           ActionButton("Install") {
             action(.install)
           }
-          .disabled(status == .installing)
+          .disabled(activity == .installing)
         }
       }
       Divider()

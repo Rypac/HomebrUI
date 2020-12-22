@@ -9,8 +9,7 @@ struct SearchResult: Identifiable {
 class SearchPackagesViewModel: ObservableObject {
   struct Environment {
     var search: (String) -> AnyPublisher<[Package.ID], Error>
-    var info: (Package.ID) -> AnyPublisher<Package, Error>
-    var status: (Package.ID) -> AnyPublisher<PackageStatus?, Never>
+    var info: (Package.ID) -> AnyPublisher<PackageDetail, Error>
     var install: (Package.ID) -> Void
     var uninstall: (Package.ID) -> Void
   }
@@ -76,7 +75,6 @@ class SearchPackagesViewModel: ObservableObject {
     PackageDetailViewModel(
       environment: .init(
         package: environment.info(searchResult.id),
-        status: environment.status(searchResult.id),
         install: environment.install,
         uninstall: environment.uninstall
       )
@@ -90,7 +88,6 @@ extension SearchPackagesViewModel {
       environment: Environment(
         search: packageRepository.searchForPackage,
         info: packageRepository.info,
-        status: operationRepository.status,
         install: packageRepository.install,
         uninstall: packageRepository.uninstall
       )

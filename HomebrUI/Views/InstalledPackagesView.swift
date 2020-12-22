@@ -5,7 +5,7 @@ class InstalledPackagesViewModel: ObservableObject {
   struct Environment {
     var packages: AnyPublisher<InstalledPackages, Never>
     var isRefreshing: AnyPublisher<Bool, Never>
-    var status: (Package.ID) -> AnyPublisher<PackageStatus?, Never>
+    var info: (Package.ID) -> AnyPublisher<PackageDetail, Error>
     var install: (Package.ID) -> Void
     var uninstall: (Package.ID) -> Void
   }
@@ -54,19 +54,9 @@ class InstalledPackagesViewModel: ObservableObject {
   func detailViewModel(for package: Package) -> PackageDetailViewModel {
     PackageDetailViewModel(
       environment: .init(
-        package: environment.packages
-          .compactMap { packages -> Package? in
-            if let formulae = packages.formulae.first(where: { $0.id == package.id }) {
-              return formulae
-            } else if let cask = packages.casks.first(where: { $0.id == package.id }) {
-              return cask
-            }
-            return nil
-          }
-          .prepend(package)
-          .setFailureType(to: Error.self)
+        package: environment.info(package.id)
+          .prepend(PackageDetail(package: package, activity: nil))
           .eraseToAnyPublisher(),
-        status: environment.status(package.id),
         install: environment.install,
         uninstall: environment.uninstall
       )
@@ -80,7 +70,7 @@ extension InstalledPackagesViewModel {
       environment: Environment(
         packages: packageRepository.packages,
         isRefreshing: packageRepository.refreshing,
-        status: operationRepository.status,
+        info: packageRepository.info,
         install: packageRepository.install,
         uninstall: packageRepository.uninstall
       )
