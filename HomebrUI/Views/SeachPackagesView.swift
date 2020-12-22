@@ -83,13 +83,13 @@ class SearchPackagesViewModel: ObservableObject {
 }
 
 extension SearchPackagesViewModel {
-  convenience init(packageRepository: PackageRepository, operationRepository: OperationRepository) {
+  convenience init(repository: PackageRepository) {
     self.init(
       environment: Environment(
-        search: packageRepository.searchForPackage,
-        info: packageRepository.info,
-        install: packageRepository.install,
-        uninstall: packageRepository.uninstall
+        search: repository.searchForPackage,
+        info: repository.info,
+        install: repository.install,
+        uninstall: repository.uninstall
       )
     )
   }

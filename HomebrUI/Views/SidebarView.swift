@@ -1,8 +1,7 @@
 import SwiftUI
 
 struct SidebarView: View {
-  let packageRepository: PackageRepository
-  let operationRepository: OperationRepository
+  let repository: PackageRepository
 
   @State private var selectedSidebarItem: SidebarItem? = .installed
 
@@ -11,10 +10,7 @@ struct SidebarView: View {
       List(selection: $selectedSidebarItem) {
         NavigationLink(
           destination: InstalledPackagesView(
-            viewModel: InstalledPackagesViewModel(
-              packageRepository: packageRepository,
-              operationRepository: operationRepository
-            )
+            viewModel: InstalledPackagesViewModel(repository: repository)
           )
         ) {
           Label("Installed", systemImage: "shippingbox")
@@ -22,10 +18,7 @@ struct SidebarView: View {
         .tag(SidebarItem.installed)
         NavigationLink(
           destination: SearchPackagesView(
-            viewModel: SearchPackagesViewModel(
-              packageRepository: packageRepository,
-              operationRepository: operationRepository
-            )
+            viewModel: SearchPackagesViewModel(repository: repository)
           )
         ) {
           Label("Search", systemImage: "magnifyingglass")

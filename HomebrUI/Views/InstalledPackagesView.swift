@@ -65,14 +65,14 @@ class InstalledPackagesViewModel: ObservableObject {
 }
 
 extension InstalledPackagesViewModel {
-  convenience init(packageRepository: PackageRepository, operationRepository: OperationRepository) {
+  convenience init(repository: PackageRepository) {
     self.init(
       environment: Environment(
-        packages: packageRepository.packages,
-        isRefreshing: packageRepository.refreshing,
-        info: packageRepository.info,
-        install: packageRepository.install,
-        uninstall: packageRepository.uninstall
+        packages: repository.packages,
+        isRefreshing: repository.refreshing,
+        info: repository.info,
+        install: repository.install,
+        uninstall: repository.uninstall
       )
     )
   }
