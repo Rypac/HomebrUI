@@ -5,7 +5,7 @@ class InstalledPackagesViewModel: ObservableObject {
   struct Environment {
     var packages: AnyPublisher<InstalledPackages, Never>
     var isRefreshing: AnyPublisher<Bool, Never>
-    var info: (Package.ID) -> AnyPublisher<PackageDetail, Error>
+    var detail: (Package.ID) -> AnyPublisher<PackageDetail, Error>
     var install: (Package.ID) -> Void
     var uninstall: (Package.ID) -> Void
   }
@@ -54,7 +54,7 @@ class InstalledPackagesViewModel: ObservableObject {
   func detailViewModel(for package: Package) -> PackageDetailViewModel {
     PackageDetailViewModel(
       environment: .init(
-        package: environment.info(package.id)
+        package: environment.detail(package.id)
           .prepend(PackageDetail(package: package, activity: nil))
           .eraseToAnyPublisher(),
         install: environment.install,
@@ -70,7 +70,7 @@ extension InstalledPackagesViewModel {
       environment: Environment(
         packages: repository.packages,
         isRefreshing: repository.refreshing,
-        info: repository.info,
+        detail: repository.detail,
         install: repository.install,
         uninstall: repository.uninstall
       )

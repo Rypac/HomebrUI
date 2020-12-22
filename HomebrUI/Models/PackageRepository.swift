@@ -165,7 +165,7 @@ extension PackageRepository {
     homebrew.search(for: query)
   }
 
-  func info(for packageID: Package.ID) -> AnyPublisher<PackageDetail, Error> {
+  func detail(for packageID: Package.ID) -> AnyPublisher<PackageDetail, Error> {
     actions
       .prepend(.refresh)
       .filter { $0 == .refresh }
