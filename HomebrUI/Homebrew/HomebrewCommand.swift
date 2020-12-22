@@ -6,6 +6,7 @@ enum HomebrewCommand {
   case search(String)
   case update
   case upgrade(HomebrewUpgradeStrategy)
+  case install([HomebrewID])
   case uninstall([HomebrewID])
 }
 
@@ -29,6 +30,8 @@ extension HomebrewCommand {
       return ["upgrade"]
     case .upgrade(.only(let formulae)):
       return ["upgrade"] + formulae
+    case .install(let formulae):
+      return ["install"] + formulae
     case .uninstall(let formulae):
       return ["uninstall"] + formulae
     }

@@ -1,6 +1,11 @@
 import Combine
 import Foundation
 
+struct InstalledPackages {
+  var formulae: [Package]
+  var casks: [Package]
+}
+
 class PackageRepository {
   private enum PackageState {
     case empty
@@ -12,12 +17,22 @@ class PackageRepository {
     case refreshing
   }
 
-  private enum Action {
+  private struct ActivityState {
+    enum Status { case started, completed, failed }
+
+    var action: Action
+    var status: Status
+  }
+
+  private enum Action: Equatable {
     case refresh
+    case install(Package.ID)
+    case uninstall(Package.ID)
   }
 
   private let packageState = CurrentValueSubject<PackageState, Never>(.empty)
   private let refreshState = CurrentValueSubject<RefreshState, Never>(.idle)
+  private let activityState = PassthroughSubject<ActivityState, Never>()
   private let actions = PassthroughSubject<Action, Never>()
   private let homebrew: Homebrew
 
@@ -28,14 +43,14 @@ class PackageRepository {
 
     actions
       .filter { $0 == .refresh }
-      .map { _ in
+      .map { [refreshState] _ in
         homebrew.installedPackages()
           .handleEvents(
             receiveSubscription: { _ in
-              self.refreshState.send(.refreshing)
+              refreshState.send(.refreshing)
             },
             receiveCompletion: { _ in
-              self.refreshState.send(.idle)
+              refreshState.send(.idle)
             }
           )
           .map { info in
@@ -55,12 +70,56 @@ class PackageRepository {
       }
       .switchToLatest()
       .receive(on: DispatchQueue.main)
-      .sink(
-        receiveCompletion: { _ in },
-        receiveValue: { installedPackages in
-          self.packageState.send(.loaded(installedPackages))
+      .sink { [packageState] installedPackages in
+        packageState.send(.loaded(installedPackages))
+      }
+      .store(in: &cancellables)
+
+    let installPackage = actions
+      .compactMap { action -> AnyPublisher<ActivityState, Never>? in
+        guard case let .install(id) = action else { return nil }
+        return homebrew.installFormulae(ids: [id])
+          .map { _ in ActivityState(action: action, status: .completed) }
+          .catch { _ in Just(ActivityState(action: action, status: .failed)) }
+          .prepend(ActivityState(action: action, status: .started))
+          .eraseToAnyPublisher()
+      }
+
+    let uninstallPackage = actions
+      .compactMap { action -> AnyPublisher<ActivityState, Never>? in
+        guard case let .uninstall(id) = action else { return nil }
+        return homebrew.uninstallFormulae(ids: [id])
+          .map { _ in ActivityState(action: action, status: .completed) }
+          .catch { _ in Just(ActivityState(action: action, status: .failed)) }
+          .prepend(ActivityState(action: action, status: .started))
+          .eraseToAnyPublisher()
+      }
+
+    Publishers.Merge(installPackage, uninstallPackage)
+      .switchToLatest()
+      .receive(on: DispatchQueue.main)
+      .sink { [actions, packageState, activityState] state in
+        switch (state.action, state.status) {
+        case (.install, .completed):
+          actions.send(.refresh)
+        case let (.uninstall(id), .completed):
+          // Remove locally installed version before refresh occurs.
+          if case var .loaded(packages) = packageState.value {
+            if let index = packages.formulae.firstIndex(where: { $0.id == id }) {
+              packages.formulae[index].installedVersion = nil
+            } else if let index = packages.casks.firstIndex(where: { $0.id == id }) {
+              packages.casks[index].installedVersion = nil
+            }
+            packageState.send(.loaded(packages))
+          }
+
+          actions.send(.refresh)
+        default:
+          break
         }
-      )
+
+        activityState.send(state)
+      }
       .store(in: &cancellables)
   }
 
@@ -75,16 +134,12 @@ class PackageRepository {
     actions.send(.refresh)
   }
 
-  func uninstall(_ package: Package) {
-    homebrew.uninstallFormulae(ids: [package.id])
-      .receive(on: DispatchQueue.main)
-      .sink(
-        receiveCompletion: { _ in },
-        receiveValue: { [actions] output in
-          actions.send(.refresh)
-        }
-      )
-      .store(in: &cancellables)
+  func install(id: Package.ID) {
+    actions.send(.install(id))
+  }
+
+  func uninstall(id: Package.ID) {
+    actions.send(.uninstall(id))
   }
 }
 
@@ -110,44 +165,46 @@ extension PackageRepository {
     homebrew.search(for: query)
   }
 
-  func info(for packageID: Package.ID) -> AnyPublisher<Package, Error> {
-    info(for: [packageID])
-      .tryMap { packages in
-        guard let package = packages.first(where: { $0.id == packageID }) else {
-          throw PackageInfoError.missingPackage(packageID)
-        }
-        return package
-      }
-      .eraseToAnyPublisher()
-  }
-
-  func info(for packageIDs: [Package.ID]) -> AnyPublisher<[Package], Error> {
-    homebrew.info(for: packageIDs)
-      .tryMap { info in
-        let fomulae = info.formulae.compactMap { formulae -> Package? in
-          guard packageIDs.contains(formulae.id) else {
-            return nil
+  func detail(for packageID: Package.ID) -> AnyPublisher<PackageDetail, Error> {
+    actions
+      .prepend(.refresh)
+      .filter { $0 == .refresh }
+      .map { [homebrew] _ in
+        homebrew.packageInfo(for: [packageID])
+          .tryMap { packages in
+            guard let package = packages.first(where: { $0.id == packageID }) else {
+              throw PackageInfoError.missingPackage(packageID)
+            }
+            return package
           }
-          return Package(formulae: formulae)
-        }
-        let casks = info.casks.compactMap { cask -> Package? in
-          guard packageIDs.contains(cask.id) else {
-            return nil
-          }
-          return Package(cask: cask)
-        }
-
-        let packages = fomulae + casks
-
-        guard packages.count == packageIDs.count else {
-          throw PackageInfoError.invalidPackageCount(
-            expected: packageIDs.count,
-            actual: packages.count
-          )
-        }
-
-        return packages
       }
+      .switchToLatest()
+      .map { [activityState] package in
+        activityState
+          .filter { state in
+            switch state.action {
+            case .install(package.id), .uninstall(package.id): return true
+            default: return false
+            }
+          }
+          .scan(PackageDetail(package: package, activity: nil)) { detail, state in
+            var detail = detail
+            switch (state.action, state.status) {
+            case (.uninstall, .started):
+              detail.activity = .uninstalling
+            case (.uninstall, .completed):
+              detail.activity = nil
+              detail.package.installedVersion = nil
+            case (.install, .started), (.install, .completed):
+              detail.activity = .installing
+            default:
+              detail.activity = nil
+            }
+            return detail
+          }
+          .prepend(PackageDetail(package: package, activity: nil))
+      }
+      .switchToLatest()
       .eraseToAnyPublisher()
   }
 }
@@ -163,5 +220,37 @@ private enum PackageInfoError: LocalizedError {
     case let .invalidPackageCount(expected, actual):
       return "Expected \(expected) packages but received \(actual)"
     }
+  }
+}
+
+private extension Homebrew {
+  func packageInfo(for ids: [Package.ID]) -> AnyPublisher<[Package], Error> {
+    info(for: ids)
+      .tryMap { info in
+        let fomulae = info.formulae.compactMap { formulae -> Package? in
+          guard ids.contains(formulae.id) else {
+            return nil
+          }
+          return Package(formulae: formulae)
+        }
+        let casks = info.casks.compactMap { cask -> Package? in
+          guard ids.contains(cask.id) else {
+            return nil
+          }
+          return Package(cask: cask)
+        }
+
+        let packages = fomulae + casks
+
+        guard packages.count == ids.count else {
+          throw PackageInfoError.invalidPackageCount(
+            expected: ids.count,
+            actual: packages.count
+          )
+        }
+
+        return packages
+      }
+      .eraseToAnyPublisher()
   }
 }

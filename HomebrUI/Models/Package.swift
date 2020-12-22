@@ -1,10 +1,5 @@
 import Foundation
 
-struct InstalledPackages {
-  var formulae: [Package]
-  var casks: [Package]
-}
-
 struct Package: Identifiable, Equatable {
   typealias ID = HomebrewID
 
@@ -14,6 +9,18 @@ struct Package: Identifiable, Equatable {
   var homepage: URL
   var installedVersion: String?
   var latestVersion: String
+}
+
+enum PackageActivity {
+  case installing
+  case updating
+  case uninstalling
+}
+
+struct PackageDetail: Identifiable {
+  var id: Package.ID { package.id }
+  var package: Package
+  var activity: PackageActivity?
 }
 
 extension Package {

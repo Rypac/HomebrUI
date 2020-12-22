@@ -5,7 +5,9 @@ class InstalledPackagesViewModel: ObservableObject {
   struct Environment {
     var packages: AnyPublisher<InstalledPackages, Never>
     var isRefreshing: AnyPublisher<Bool, Never>
-    var uninstall: (Package) -> Void
+    var detail: (Package.ID) -> AnyPublisher<PackageDetail, Error>
+    var install: (Package.ID) -> Void
+    var uninstall: (Package.ID) -> Void
   }
 
   enum State {
@@ -46,7 +48,19 @@ class InstalledPackagesViewModel: ObservableObject {
   }
 
   func uninstall(package: Package) {
-    environment.uninstall(package)
+    environment.uninstall(package.id)
+  }
+
+  func detailViewModel(for package: Package) -> PackageDetailViewModel {
+    PackageDetailViewModel(
+      environment: .init(
+        package: environment.detail(package.id)
+          .prepend(PackageDetail(package: package, activity: nil))
+          .eraseToAnyPublisher(),
+        install: environment.install,
+        uninstall: environment.uninstall
+      )
+    )
   }
 }
 
@@ -56,6 +70,8 @@ extension InstalledPackagesViewModel {
       environment: Environment(
         packages: repository.packages,
         isRefreshing: repository.refreshing,
+        detail: repository.detail,
+        install: repository.install,
         uninstall: repository.uninstall
       )
     )
@@ -79,6 +95,7 @@ struct InstalledPackagesView: View {
         PackageFilterView(query: $viewModel.query)
         PackageListView(
           packages: packages,
+          detailViewModel: viewModel.detailViewModel,
           action: { action in
             switch action {
             case .viewHomepage(let package):
@@ -115,6 +132,7 @@ private struct PackageListView: View {
   }
 
   let packages: InstalledPackages
+  let detailViewModel: (Package) -> PackageDetailViewModel
   let action: (Action) -> Void
 
   var body: some View {
@@ -136,11 +154,7 @@ private struct PackageListView: View {
   }
 
   private func packageRow(_ package: Package) -> some View {
-    NavigationLink(
-      destination: PackageDetailView(
-        viewModel: PackageDetailViewModel(package: package)
-      )
-    ) {
+    NavigationLink(destination: PackageDetailView(viewModel: detailViewModel(package))) {
       HStack {
         Text(package.name)
           .layoutPriority(1)
