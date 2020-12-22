@@ -18,16 +18,23 @@ class PackageRepository {
   }
 
   private struct ActivityState {
+    enum Action { case install, uninstall }
     enum Status { case started, completed, failed }
 
+    var id: Package.ID
     var action: Action
     var status: Status
   }
 
   private enum Action: Equatable {
-    case refresh
+    case refresh(RefreshStrategy)
     case install(Package.ID)
     case uninstall(Package.ID)
+  }
+
+  private enum RefreshStrategy: Equatable {
+    case installed
+    case only(Package.ID)
   }
 
   private let packageState = CurrentValueSubject<PackageState, Never>(.empty)
@@ -42,7 +49,7 @@ class PackageRepository {
     self.homebrew = homebrew
 
     actions
-      .filter { $0 == .refresh }
+      .filter { $0 == .refresh(.installed) }
       .map { [refreshState] _ in
         homebrew.installedPackages()
           .handleEvents(
@@ -77,21 +84,27 @@ class PackageRepository {
 
     let installPackage = actions
       .compactMap { action -> AnyPublisher<ActivityState, Never>? in
-        guard case let .install(id) = action else { return nil }
+        guard case let .install(id) = action else {
+          return nil
+        }
         return homebrew.installFormulae(ids: [id])
-          .map { _ in ActivityState(action: action, status: .completed) }
-          .catch { _ in Just(ActivityState(action: action, status: .failed)) }
-          .prepend(ActivityState(action: action, status: .started))
+          .map { _ in .completed }
+          .catch { _ in Just(.failed) }
+          .prepend(.started)
+          .map { ActivityState(id: id, action: .install, status: $0) }
           .eraseToAnyPublisher()
       }
 
     let uninstallPackage = actions
       .compactMap { action -> AnyPublisher<ActivityState, Never>? in
-        guard case let .uninstall(id) = action else { return nil }
+        guard case let .uninstall(id) = action else {
+          return nil
+        }
         return homebrew.uninstallFormulae(ids: [id])
-          .map { _ in ActivityState(action: action, status: .completed) }
-          .catch { _ in Just(ActivityState(action: action, status: .failed)) }
-          .prepend(ActivityState(action: action, status: .started))
+          .map { _ in .completed }
+          .catch { _ in Just(.failed) }
+          .prepend(.started)
+          .map { ActivityState(id: id, action: .uninstall, status: $0) }
           .eraseToAnyPublisher()
       }
 
@@ -101,19 +114,23 @@ class PackageRepository {
       .sink { [actions, packageState, activityState] state in
         switch (state.action, state.status) {
         case (.install, .completed):
-          actions.send(.refresh)
-        case let (.uninstall(id), .completed):
+          actions.send(.refresh(.installed))
+          actions.send(.refresh(.only(state.id)))
+
+        case (.uninstall, .completed):
           // Remove locally installed version before refresh occurs.
           if case var .loaded(packages) = packageState.value {
-            if let index = packages.formulae.firstIndex(where: { $0.id == id }) {
+            if let index = packages.formulae.firstIndex(where: { $0.id == state.id }) {
               packages.formulae[index].installedVersion = nil
-            } else if let index = packages.casks.firstIndex(where: { $0.id == id }) {
+            } else if let index = packages.casks.firstIndex(where: { $0.id == state.id }) {
               packages.casks[index].installedVersion = nil
             }
             packageState.send(.loaded(packages))
           }
 
-          actions.send(.refresh)
+          actions.send(.refresh(.installed))
+          actions.send(.refresh(.only(state.id)))
+
         default:
           break
         }
@@ -131,7 +148,11 @@ class PackageRepository {
   }
 
   func refresh() {
-    actions.send(.refresh)
+    actions.send(.refresh(.installed))
+  }
+
+  func refresh(id: Package.ID) {
+    actions.send(.refresh(.only(id)))
   }
 
   func install(id: Package.ID) {
@@ -166,27 +187,10 @@ extension PackageRepository {
   }
 
   func detail(for packageID: Package.ID) -> AnyPublisher<PackageDetail, Error> {
-    actions
-      .prepend(.refresh)
-      .filter { $0 == .refresh }
-      .map { [homebrew] _ in
-        homebrew.packageInfo(for: [packageID])
-          .tryMap { packages in
-            guard let package = packages.first(where: { $0.id == packageID }) else {
-              throw PackageInfoError.missingPackage(packageID)
-            }
-            return package
-          }
-      }
-      .switchToLatest()
+    package(id: packageID)
       .map { [activityState] package in
         activityState
-          .filter { state in
-            switch state.action {
-            case .install(package.id), .uninstall(package.id): return true
-            default: return false
-            }
-          }
+          .filter { $0.id == packageID }
           .scan(PackageDetail(package: package, activity: nil)) { detail, state in
             var detail = detail
             switch (state.action, state.status) {
@@ -207,50 +211,53 @@ extension PackageRepository {
       .switchToLatest()
       .eraseToAnyPublisher()
   }
-}
 
-private enum PackageInfoError: LocalizedError {
-  case missingPackage(Package.ID)
-  case invalidPackageCount(expected: Int, actual: Int)
+  private func package(id: Package.ID) -> AnyPublisher<Package, Error> {
+    let refreshedPackage = actions
+      .compactMap { [homebrew] action -> AnyPublisher<Package, Error>? in
+        guard case .refresh(.only(id)) = action else {
+          return nil
+        }
 
-  var errorDescription: String {
-    switch self {
-    case let .missingPackage(id):
-      return "Missing package \"\(id)\""
-    case let .invalidPackageCount(expected, actual):
-      return "Expected \(expected) packages but received \(actual)"
-    }
+        return homebrew.info(for: [id])
+          .tryMap { info in
+            guard let package = info.packages.first(where: { $0.id == id }) else {
+              throw MissingPackageError(id: id)
+            }
+            return package
+          }
+          .eraseToAnyPublisher()
+      }
+      .switchToLatest()
+
+    let installedPackage = packageState
+      .compactMap { state -> Package? in
+        guard case let .loaded(packages) = state else {
+          return nil
+        }
+
+        if let package = packages.formulae.first(where: { $0.id == id }) {
+          return package
+        }
+        if let package = packages.casks.first(where: { $0.id == id }) {
+          return package
+        }
+        return nil
+      }
+      .setFailureType(to: Error.self)
+
+    return Publishers.Merge(installedPackage, refreshedPackage)
+      .eraseToAnyPublisher()
   }
 }
 
-private extension Homebrew {
-  func packageInfo(for ids: [Package.ID]) -> AnyPublisher<[Package], Error> {
-    info(for: ids)
-      .tryMap { info in
-        let fomulae = info.formulae.compactMap { formulae -> Package? in
-          guard ids.contains(formulae.id) else {
-            return nil
-          }
-          return Package(formulae: formulae)
-        }
-        let casks = info.casks.compactMap { cask -> Package? in
-          guard ids.contains(cask.id) else {
-            return nil
-          }
-          return Package(cask: cask)
-        }
+private struct MissingPackageError: LocalizedError {
+  let id: Package.ID
+  var errorDescription: String { "Missing package \"\(id)\"" }
+}
 
-        let packages = fomulae + casks
-
-        guard packages.count == ids.count else {
-          throw PackageInfoError.invalidPackageCount(
-            expected: ids.count,
-            actual: packages.count
-          )
-        }
-
-        return packages
-      }
-      .eraseToAnyPublisher()
+private extension HomebrewInfo {
+  var packages: [Package] {
+    formulae.map(Package.init(formulae:)) + casks.map(Package.init(cask:))
   }
 }
