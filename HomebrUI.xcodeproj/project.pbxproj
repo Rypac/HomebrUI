@@ -45,6 +45,7 @@
 		9421EF1D258AF51100C0EC8B /* ProcessOperation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProcessOperation.swift; sourceTree = "<group>"; };
 		9421EF22258AF77600C0EC8B /* HomebrewConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomebrewConfiguration.swift; sourceTree = "<group>"; };
 		9421EF2B258B0A8C00C0EC8B /* AppCommands.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppCommands.swift; sourceTree = "<group>"; };
+		947218162593384700F4B584 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		94B042922589666B00222EEF /* HomebrUI.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = HomebrUI.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		94B042952589666B00222EEF /* HomebrUIApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomebrUIApp.swift; sourceTree = "<group>"; };
 		94B042992589666C00222EEF /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -100,6 +101,7 @@
 		94B042892589666B00222EEF = {
 			isa = PBXGroup;
 			children = (
+				947218162593384700F4B584 /* README.md */,
 				94B042942589666B00222EEF /* HomebrUI */,
 				94B042932589666B00222EEF /* Products */,
 			);
