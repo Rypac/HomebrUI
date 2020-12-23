@@ -182,8 +182,19 @@ extension PackageRepository {
       .eraseToAnyPublisher()
   }
 
-  func searchForPackage(withName query: String) -> AnyPublisher<[Package.ID], Error> {
+  func searchForPackage(withName query: String) -> AnyPublisher<[Package], Error> {
     homebrew.search(for: query)
+      .map { [homebrew] result in
+        Publishers.Zip(
+          homebrew.info(for: result.formulae)
+            .map { $0.formulae.map(Package.init(formulae:)) },
+          homebrew.info(for: result.casks)
+            .map { $0.casks.map(Package.init(cask:)) }
+        )
+        .map(+)
+      }
+      .switchToLatest()
+      .eraseToAnyPublisher()
   }
 
   func detail(for packageID: Package.ID) -> AnyPublisher<PackageDetail, Error> {
@@ -213,7 +224,7 @@ extension PackageRepository {
   }
 
   private func package(id: Package.ID) -> AnyPublisher<Package, Error> {
-    let refreshedPackage = actions
+    actions
       .compactMap { [homebrew] action -> AnyPublisher<Package, Error>? in
         guard case .refresh(.only(id)) = action else {
           return nil
@@ -229,24 +240,6 @@ extension PackageRepository {
           .eraseToAnyPublisher()
       }
       .switchToLatest()
-
-    let installedPackage = packageState
-      .compactMap { state -> Package? in
-        guard case let .loaded(packages) = state else {
-          return nil
-        }
-
-        if let package = packages.formulae.first(where: { $0.id == id }) {
-          return package
-        }
-        if let package = packages.casks.first(where: { $0.id == id }) {
-          return package
-        }
-        return nil
-      }
-      .setFailureType(to: Error.self)
-
-    return Publishers.Merge(installedPackage, refreshedPackage)
       .eraseToAnyPublisher()
   }
 }

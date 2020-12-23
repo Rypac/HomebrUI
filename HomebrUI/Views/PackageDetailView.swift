@@ -50,8 +50,7 @@ struct PackageDetailView: View {
   var body: some View {
     switch viewModel.state {
     case .empty:
-      EmptyPackageDetailView()
-        .onAppear(perform: viewModel.load)
+      PackageDetailPlaceholderView()
     case .loading:
       LoadingPackageDetailView()
     case .loaded(let detail):
@@ -72,12 +71,6 @@ struct PackageDetailPlaceholderView: View {
     Text("Select a Package")
       .font(.callout)
       .foregroundColor(.secondary)
-  }
-}
-
-private struct EmptyPackageDetailView: View {
-  var body: some View {
-    Color.clear
   }
 }
 

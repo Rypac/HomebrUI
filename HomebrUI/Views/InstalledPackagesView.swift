@@ -55,7 +55,9 @@ class InstalledPackagesViewModel: ObservableObject {
   func detailViewModel(for package: Package) -> PackageDetailViewModel {
     PackageDetailViewModel(
       environment: .init(
-        package: environment.detail(package.id),
+        package: environment.detail(package.id)
+          .prepend(PackageDetail(package: package, activity: nil))
+          .eraseToAnyPublisher(),
         load: { [load = environment.load] in load(package.id) },
         install: { [install = environment.install] in install(package.id) },
         uninstall: { [uninstall = environment.uninstall] in uninstall(package.id) }
