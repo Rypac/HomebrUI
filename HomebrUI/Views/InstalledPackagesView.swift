@@ -86,6 +86,8 @@ struct InstalledPackagesView: View {
 
   @Environment(\.openURL) private var openURL
 
+  @State private var selection: Package.ID?
+
   var body: some View {
     VStack(spacing: 0) {
       switch viewModel.packageState {
@@ -99,6 +101,7 @@ struct InstalledPackagesView: View {
         PackageListView(
           packages: packages,
           detailViewModel: viewModel.detailViewModel,
+          selection: $selection,
           action: { action in
             switch action {
             case .viewHomepage(let package):
@@ -136,6 +139,7 @@ private struct PackageListView: View {
 
   let packages: InstalledPackages
   let detailViewModel: (Package) -> PackageDetailViewModel
+  @Binding var selection: Package.ID?
   let action: (Action) -> Void
 
   var body: some View {
@@ -157,7 +161,11 @@ private struct PackageListView: View {
   }
 
   private func packageRow(_ package: Package) -> some View {
-    NavigationLink(destination: PackageDetailView(viewModel: detailViewModel(package))) {
+    NavigationLink(
+      destination: PackageDetailView(viewModel: detailViewModel(package)),
+      tag: package.id,
+      selection: $selection
+    ) {
       HStack {
         Text(package.name)
           .layoutPriority(1)
