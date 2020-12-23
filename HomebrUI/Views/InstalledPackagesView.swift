@@ -6,6 +6,7 @@ class InstalledPackagesViewModel: ObservableObject {
     var packages: AnyPublisher<InstalledPackages, Never>
     var isRefreshing: AnyPublisher<Bool, Never>
     var detail: (Package.ID) -> AnyPublisher<PackageDetail, Error>
+    var load: (Package.ID) -> Void
     var install: (Package.ID) -> Void
     var uninstall: (Package.ID) -> Void
   }
@@ -54,11 +55,10 @@ class InstalledPackagesViewModel: ObservableObject {
   func detailViewModel(for package: Package) -> PackageDetailViewModel {
     PackageDetailViewModel(
       environment: .init(
-        package: environment.detail(package.id)
-          .prepend(PackageDetail(package: package, activity: nil))
-          .eraseToAnyPublisher(),
-        install: environment.install,
-        uninstall: environment.uninstall
+        package: environment.detail(package.id),
+        load: { [load = environment.load] in load(package.id) },
+        install: { [install = environment.install] in install(package.id) },
+        uninstall: { [uninstall = environment.uninstall] in uninstall(package.id) }
       )
     )
   }
@@ -71,6 +71,7 @@ extension InstalledPackagesViewModel {
         packages: repository.packages,
         isRefreshing: repository.refreshing,
         detail: repository.detail,
+        load: repository.refresh,
         install: repository.install,
         uninstall: repository.uninstall
       )

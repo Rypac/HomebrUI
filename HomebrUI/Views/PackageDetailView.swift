@@ -4,8 +4,9 @@ import SwiftUI
 class PackageDetailViewModel: ObservableObject {
   struct Environment {
     var package: AnyPublisher<PackageDetail, Error>
-    var install: (Package.ID) -> Void
-    var uninstall: (Package.ID) -> Void
+    var load: () -> Void
+    var install: () -> Void
+    var uninstall: () -> Void
   }
 
   enum State {
@@ -17,33 +18,29 @@ class PackageDetailViewModel: ObservableObject {
 
   @Published private(set) var state: State = .empty
 
-  private let load = PassthroughSubject<Void, Never>()
   private let environment: Environment
 
   init(environment: Environment) {
     self.environment = environment
-    load
-      .map {
-        environment.package
-          .map(State.loaded)
-          .catch { _ in Just(.error("Failed to load package")) }
-          .prepend(.loading)
-      }
-      .switchToLatest()
+
+    environment.package
+      .map(State.loaded)
+      .catch { _ in Just(.error("Failed to load package")) }
       .receive(on: DispatchQueue.main)
       .assign(to: &$state)
   }
 
-  func loadPackage() {
-    load.send()
+  func load() {
+    state = .loading
+    environment.load()
   }
 
-  func install(id: Package.ID) {
-    environment.install(id)
+  func install() {
+    environment.install()
   }
 
-  func uninstall(id: Package.ID) {
-    environment.uninstall(id)
+  func uninstall() {
+    environment.uninstall()
   }
 }
 
@@ -54,19 +51,27 @@ struct PackageDetailView: View {
     switch viewModel.state {
     case .empty:
       EmptyPackageDetailView()
-        .onAppear(perform: viewModel.loadPackage)
+        .onAppear(perform: viewModel.load)
     case .loading:
       LoadingPackageDetailView()
     case .loaded(let detail):
       LoadedPackageDetailView(package: detail.package, activity: detail.activity) { action in
         switch action {
-        case .install: viewModel.install(id: detail.id)
-        case .uninstall: viewModel.uninstall(id: detail.id)
+        case .install: viewModel.install()
+        case .uninstall: viewModel.uninstall()
         }
       }
     case .error(let message):
-      FailedToLoadPackageView(message: message, retry: viewModel.loadPackage)
+      FailedToLoadPackageView(message: message, retry: viewModel.load)
     }
+  }
+}
+
+struct PackageDetailPlaceholderView: View {
+  var body: some View {
+    Text("Select a Package")
+      .font(.callout)
+      .foregroundColor(.secondary)
   }
 }
 
@@ -138,15 +143,7 @@ private struct LoadedPackageDetailView: View {
   }
 }
 
-struct PackageDetailPlaceholderView: View {
-  var body: some View {
-    Text("Select a Package")
-      .font(.callout)
-      .foregroundColor(.secondary)
-  }
-}
-
-struct FailedToLoadPackageView: View {
+private struct FailedToLoadPackageView: View {
   let message: String
   let retry: () -> Void
 
