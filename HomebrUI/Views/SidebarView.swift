@@ -1,26 +1,24 @@
 import SwiftUI
 
 struct SidebarView: View {
-  let repository: PackageRepository
+  private let installedViewModel: InstalledPackagesViewModel
+  private let searchViewModel: SearchPackagesViewModel
 
   @State private var selectedSidebarItem: SidebarItem? = .installed
+
+  init(repository: PackageRepository) {
+    installedViewModel = InstalledPackagesViewModel(repository: repository)
+    searchViewModel = SearchPackagesViewModel(repository: repository)
+  }
 
   var body: some View {
     NavigationView {
       List(selection: $selectedSidebarItem) {
-        NavigationLink(
-          destination: InstalledPackagesView(
-            viewModel: InstalledPackagesViewModel(repository: repository)
-          )
-        ) {
+        NavigationLink(destination: InstalledPackagesView(viewModel: installedViewModel)) {
           Label("Installed", systemImage: "shippingbox")
         }
         .tag(SidebarItem.installed)
-        NavigationLink(
-          destination: SearchPackagesView(
-            viewModel: SearchPackagesViewModel(repository: repository)
-          )
-        ) {
+        NavigationLink(destination: SearchPackagesView(viewModel: searchViewModel)) {
           Label("Search", systemImage: "magnifyingglass")
         }
         .tag(SidebarItem.search)
