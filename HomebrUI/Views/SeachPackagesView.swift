@@ -1,14 +1,9 @@
 import Combine
 import SwiftUI
 
-struct SearchResult: Identifiable {
-  let id: Package.ID
-  var name: String { id.rawValue }
-}
-
 class SearchPackagesViewModel: ObservableObject {
   struct Environment {
-    var search: (String) -> AnyPublisher<[Package.ID], Error>
+    var search: (String) -> AnyPublisher<[Package], Error>
     var detail: (Package.ID) -> AnyPublisher<PackageDetail, Error>
     var load: (Package.ID) -> Void
     var install: (Package.ID) -> Void
@@ -18,7 +13,7 @@ class SearchPackagesViewModel: ObservableObject {
   enum State {
     case empty
     case loading
-    case loaded([SearchResult])
+    case loaded([Package])
     case noResults
     case error(String)
   }
@@ -49,11 +44,11 @@ class SearchPackagesViewModel: ObservableObject {
           return .just(.empty)
         }
         return environment.search(query)
-          .map { results in
-            guard !results.isEmpty else {
+          .map { packages in
+            guard !packages.isEmpty else {
               return .noResults
             }
-            return .loaded(results.map(SearchResult.init))
+            return .loaded(packages)
           }
           .prepend(.loading)
           .catch { _ in Just(.error("Failed to load results")) }
@@ -72,13 +67,15 @@ class SearchPackagesViewModel: ObservableObject {
     actions.send(.retry)
   }
 
-  func detailViewModel(for searchResult: SearchResult) -> PackageDetailViewModel {
+  func detailViewModel(for package: Package) -> PackageDetailViewModel {
     PackageDetailViewModel(
       environment: .init(
-        package: environment.detail(searchResult.id),
-        load: { [load = environment.load] in load(searchResult.id) },
-        install: { [install = environment.install] in install(searchResult.id) },
-        uninstall: { [uninstall = environment.uninstall] in uninstall(searchResult.id) }
+        package: environment.detail(package.id)
+          .prepend(PackageDetail(package: package, activity: nil))
+          .eraseToAnyPublisher(),
+        load: { [load = environment.load] in load(package.id) },
+        install: { [install = environment.install] in install(package.id) },
+        uninstall: { [uninstall = environment.uninstall] in uninstall(package.id) }
       )
     )
   }
@@ -149,8 +146,8 @@ private struct SearchLoadingView: View {
 }
 
 private struct SearchResultsView: View {
-  let results: [SearchResult]
-  let detailViewModel: (SearchResult) -> PackageDetailViewModel
+  let results: [Package]
+  let detailViewModel: (Package) -> PackageDetailViewModel
 
   var body: some View {
     List {

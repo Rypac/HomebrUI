@@ -25,6 +25,11 @@ struct HomebrewInfo: Equatable, Codable {
   let casks: [Cask]
 }
 
+struct HomebrewSearchInfo: Equatable {
+  var formulae: [HomebrewID]
+  var casks: [HomebrewID]
+}
+
 struct Formulae: Equatable, Identifiable {
   let id: HomebrewID
   let name: String

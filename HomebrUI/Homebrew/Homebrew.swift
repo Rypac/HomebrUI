@@ -23,7 +23,7 @@ struct Homebrew {
       .eraseToAnyPublisher()
   }
 
-  func search(for query: String) -> AnyPublisher<[HomebrewID], Error> {
+  func search(for query: String) -> AnyPublisher<HomebrewSearchInfo, Error> {
     queue.run(.search(query))
       .tryMap { result in
         guard result.status == 0 else {
@@ -31,24 +31,40 @@ struct Homebrew {
           guard errorMessage.hasPrefix("Error: No formulae or casks found for") else {
             throw HomebrewError(processResult: result)
           }
-          return []
+          return HomebrewSearchInfo(formulae: [], casks: [])
         }
+
+        enum SearchResult { case formulae, cask }
+        var searchResult: SearchResult?
 
         return String(decoding: result.standardOutput, as: UTF8.self)
           .split(separator: "\n")
-          .compactMap { line in
-            // Ignore any empty lines and dividers between Formulae and Casks
-            if line.isEmpty || line.starts(with: "==>") {
-              return nil
+          .reduce(into: HomebrewSearchInfo(formulae: [], casks: [])) { search, line in
+            switch line {
+            case "==> Formulae":
+              searchResult = .formulae
+            case "==> Casks":
+              searchResult = .cask
+            case let line where !line.isEmpty:
+              if searchResult == .formulae {
+                search.formulae.append(HomebrewID(rawValue: String(line)))
+              } else if searchResult == .cask {
+                search.casks.append(HomebrewID(rawValue: String(line)))
+              }
+            default:
+              break
             }
-            return HomebrewID(rawValue: String(line))
           }
       }
       .eraseToAnyPublisher()
   }
 
   func info(for packages: [HomebrewID]) -> AnyPublisher<HomebrewInfo, Error> {
-    queue.run(.info(packages))
+    if packages.isEmpty {
+      return .just(HomebrewInfo(formulae: [], casks: []))
+    }
+
+    return queue.run(.info(packages))
       .tryMap { result in
         guard result.status == 0 else {
           throw HomebrewError(processResult: result)
