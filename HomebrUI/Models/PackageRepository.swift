@@ -186,14 +186,41 @@ extension PackageRepository {
     homebrew.search(for: query)
       .map { [homebrew] result in
         Publishers.Zip(
-          homebrew.info(for: result.formulae)
-            .map { $0.formulae.map(Package.init(formulae:)) },
-          homebrew.info(for: result.casks)
-            .map { $0.casks.map(Package.init(cask:)) }
+          homebrew.info(for: result.formulae).map(\.formulae),
+          homebrew.info(for: result.casks).map(\.casks)
         )
-        .map(+)
+        .map(HomebrewInfo.init)
       }
       .switchToLatest()
+      .combineLatest(installedVersions.setFailureType(to: Error.self))
+      .map { info, versions in
+        var packages: [Package] = []
+        info.formulae.forEach { formulae in
+          var package = Package(formulae: formulae)
+          package.installedVersion = versions[formulae.id]
+          packages.append(package)
+        }
+        info.casks.forEach { cask in
+          var package = Package(cask: cask)
+          package.installedVersion = versions[cask.id]
+          packages.append(package)
+        }
+        return packages
+      }
+      .eraseToAnyPublisher()
+  }
+
+  var installedVersions: AnyPublisher<[Package.ID: String], Never> {
+    packageState
+      .map { state in
+        guard case let .loaded(packages) = state else {
+          return [:]
+        }
+        var packageVersions: [Package.ID: String] = [:]
+        packages.formulae.forEach { packageVersions[$0.id] = $0.installedVersion }
+        packages.casks.forEach { packageVersions[$0.id] = $0.installedVersion }
+        return packageVersions
+      }
       .eraseToAnyPublisher()
   }
 
@@ -224,7 +251,23 @@ extension PackageRepository {
   }
 
   private func package(id: Package.ID) -> AnyPublisher<Package, Error> {
-    actions
+    let installedPackageVersion = packageState
+      .map { state -> String? in
+        guard case let .loaded(packages) = state else {
+          return nil
+        }
+
+        if let package = packages.formulae.first(where: { $0.id == id }) {
+          return package.installedVersion
+        }
+        if let package = packages.casks.first(where: { $0.id == id }) {
+          return package.installedVersion
+        }
+        return nil
+      }
+      .setFailureType(to: Error.self)
+
+    let refreshedPackage = actions
       .compactMap { [homebrew] action -> AnyPublisher<Package, Error>? in
         guard case .refresh(.only(id)) = action else {
           return nil
@@ -240,6 +283,14 @@ extension PackageRepository {
           .eraseToAnyPublisher()
       }
       .switchToLatest()
+      .eraseToAnyPublisher()
+
+    return Publishers.CombineLatest(refreshedPackage, installedPackageVersion)
+      .map { package, version in
+        var package = package
+        package.installedVersion = version
+        return package
+      }
       .eraseToAnyPublisher()
   }
 }
