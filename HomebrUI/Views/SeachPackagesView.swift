@@ -33,12 +33,16 @@ final class SearchPackagesViewModel: ObservableObject {
   init(environment: Environment) {
     self.environment = environment
 
-    let clearSearch = $query.filter(\.isEmpty)
-    let runSearch = actions.compactMap { [weak self] in $0 == .search ? self?.query : nil }.removeDuplicates()
-    let retrySearch = actions.compactMap { [weak self] in $0 == .retry ? self?.query : nil }
+    let executeSearch = $query
+      .debounce(for: .seconds(0.5), scheduler: DispatchQueue.main)
+      .merge(with: actions.compactMap { [weak self] in $0 == .search ? self?.query : nil })
+      .removeDuplicates()
+      .merge(with: actions.compactMap { [weak self] in $0 == .retry ? self?.query : nil })
+      .filter { !$0.isEmpty }
 
-    Publishers
-      .Merge3(clearSearch, runSearch, retrySearch)
+    let clearSearch = $query.filter(\.isEmpty)
+
+    Publishers.Merge(executeSearch, clearSearch)
       .map { query -> AnyPublisher<State, Never> in
         if query.isEmpty {
           return .just(.empty)
