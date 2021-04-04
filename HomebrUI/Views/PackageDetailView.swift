@@ -20,8 +20,12 @@ final class PackageDetailViewModel: ObservableObject {
 
   private let environment: Environment
 
-  init(environment: Environment) {
+  init(environment: Environment, packageDetail: PackageDetail? = nil) {
     self.environment = environment
+
+    if let packageDetail = packageDetail {
+      state = .loaded(packageDetail)
+    }
 
     environment.package
       .map(State.loaded)

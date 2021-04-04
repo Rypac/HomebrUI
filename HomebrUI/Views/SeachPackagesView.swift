@@ -70,13 +70,12 @@ final class SearchPackagesViewModel: ObservableObject {
   func detailViewModel(for package: Package) -> PackageDetailViewModel {
     PackageDetailViewModel(
       environment: .init(
-        package: environment.detail(package.id)
-          .prepend(PackageDetail(package: package, activity: nil))
-          .eraseToAnyPublisher(),
+        package: environment.detail(package.id),
         load: { [load = environment.load] in load(package.id) },
         install: { [install = environment.install] in install(package.id) },
         uninstall: { [uninstall = environment.uninstall] in uninstall(package.id) }
-      )
+      ),
+      packageDetail: PackageDetail(package: package, activity: nil)
     )
   }
 }
