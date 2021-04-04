@@ -16,6 +16,13 @@ enum HomebrewUpgradeStrategy {
 }
 
 extension HomebrewCommand {
+  var isBlocking: Bool {
+    switch self {
+    case .list, .info, .search: return false
+    case .update, .upgrade, .install, .uninstall: return true
+    }
+  }
+
   var arguments: [String] {
     switch self {
     case .list:

@@ -57,8 +57,8 @@ struct PackageDetailView: View {
       PackageDetailPlaceholderView()
     case .loading:
       LoadingPackageDetailView()
-    case .loaded(let detail):
-      LoadedPackageDetailView(package: detail.package, activity: detail.activity) { action in
+    case .loaded(let package):
+      LoadedPackageDetailView(package: package) { action in
         switch action {
         case .install: viewModel.install()
         case .uninstall: viewModel.uninstall()
@@ -90,8 +90,7 @@ private struct LoadedPackageDetailView: View {
     case uninstall
   }
 
-  let package: Package
-  let activity: PackageActivity?
+  let package: PackageDetail
   let action: (Action) -> Void
 
   var body: some View {
@@ -100,7 +99,7 @@ private struct LoadedPackageDetailView: View {
         Text(package.name)
           .font(.title)
         Spacer()
-        if activity != nil {
+        if package.activity != nil {
           ProgressView()
             .scaleEffect(0.5)
         }
@@ -108,12 +107,12 @@ private struct LoadedPackageDetailView: View {
           ActionButton("Uninstall") {
             action(.uninstall)
           }
-          .disabled(activity == .uninstalling)
+          .disabled(package.activity == .uninstalling)
         } else {
           ActionButton("Install") {
             action(.install)
           }
-          .disabled(activity == .installing)
+          .disabled(package.activity == .installing)
         }
       }
       Divider()

@@ -1,7 +1,7 @@
 import Foundation
 
 struct HomebrewID: Equatable, Hashable, Codable, RawRepresentable {
-  var rawValue: String
+  let rawValue: String
 
   init(rawValue: String) {
     self.rawValue = rawValue
@@ -21,8 +21,8 @@ extension HomebrewID: CustomStringConvertible {
 }
 
 struct HomebrewInfo: Equatable, Codable {
-  let formulae: [Formulae]
-  let casks: [Cask]
+  var formulae: [Formulae]
+  var casks: [Cask]
 }
 
 struct HomebrewSearchInfo: Equatable {

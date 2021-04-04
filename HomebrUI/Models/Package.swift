@@ -15,14 +15,18 @@ enum PackageActivity {
   case uninstalling
 }
 
+@dynamicMemberLookup
 struct PackageDetail: Identifiable {
   var id: Package.ID { package.id }
   var package: Package
   var activity: PackageActivity?
-}
 
-extension Package {
-  var isInstalled: Bool { installedVersion != nil }
+  var isInstalled: Bool { package.installedVersion != nil }
+
+  subscript<Property>(dynamicMember keyPath: WritableKeyPath<Package, Property>) -> Property {
+    get { package[keyPath: keyPath] }
+    set { package[keyPath: keyPath] = newValue }
+  }
 }
 
 extension Package {
