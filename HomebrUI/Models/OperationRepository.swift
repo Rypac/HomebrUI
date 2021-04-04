@@ -1,7 +1,7 @@
 import Combine
 import Foundation
 
-class OperationRepository {
+final class OperationRepository {
   private let accumulatedOperations = CurrentValueSubject<[HomebrewOperation], Never>([])
 
   private var cancellables = Set<AnyCancellable>()

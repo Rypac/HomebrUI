@@ -1,7 +1,7 @@
 import Combine
 import SwiftUI
 
-class PackageDetailViewModel: ObservableObject {
+final class PackageDetailViewModel: ObservableObject {
   struct Environment {
     var package: AnyPublisher<PackageDetail, Error>
     var load: () -> Void
@@ -45,7 +45,7 @@ class PackageDetailViewModel: ObservableObject {
 }
 
 struct PackageDetailView: View {
-  @ObservedObject var viewModel: PackageDetailViewModel
+  @StateObject var viewModel: PackageDetailViewModel
 
   var body: some View {
     switch viewModel.state {

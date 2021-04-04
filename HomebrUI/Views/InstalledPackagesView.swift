@@ -1,7 +1,7 @@
 import Combine
 import SwiftUI
 
-class InstalledPackagesViewModel: ObservableObject {
+final class InstalledPackagesViewModel: ObservableObject {
   struct Environment {
     var packages: AnyPublisher<InstalledPackages, Never>
     var isRefreshing: AnyPublisher<Bool, Never>
@@ -82,7 +82,7 @@ extension InstalledPackagesViewModel {
 }
 
 struct InstalledPackagesView: View {
-  @ObservedObject var viewModel: InstalledPackagesViewModel
+  @StateObject var viewModel: InstalledPackagesViewModel
 
   @Environment(\.openURL) private var openURL
 

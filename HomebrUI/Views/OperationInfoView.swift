@@ -2,15 +2,13 @@ import Combine
 import Foundation
 import SwiftUI
 
-class OperationInfoViewModel: ObservableObject {
+final class OperationInfoViewModel: ObservableObject {
   struct Environment {
     var operations: AnyPublisher<[HomebrewOperation], Never>
   }
 
   struct Operation: Identifiable {
-    typealias ID = HomebrewOperation.ID
-
-    let id: ID
+    let id: HomebrewOperation.ID
     let name: String
     let status: String
   }
@@ -20,20 +18,14 @@ class OperationInfoViewModel: ObservableObject {
   init(environment: Environment) {
     environment.operations
       .map { operations in
-        operations.map { operation in
-          Operation(
-            id: operation.id,
-            name: operation.command.name,
-            status: operation.status.name
-          )
-        }
+        operations.map(Operation.init)
       }
       .assign(to: &$operations)
   }
 }
 
 struct OperationInfoView: View {
-  @ObservedObject var viewModel: OperationInfoViewModel
+  @StateObject var viewModel: OperationInfoViewModel
 
   var body: some View {
     VStack {
@@ -47,6 +39,14 @@ struct OperationInfoView: View {
     }
     .padding()
     .frame(minWidth: 350, minHeight: 400)
+  }
+}
+
+private extension OperationInfoViewModel.Operation {
+  init(operation: HomebrewOperation) {
+    id = operation.id
+    name = operation.command.name
+    status = operation.status.name
   }
 }
 

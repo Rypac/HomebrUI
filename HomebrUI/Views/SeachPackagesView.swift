@@ -1,7 +1,7 @@
 import Combine
 import SwiftUI
 
-class SearchPackagesViewModel: ObservableObject {
+final class SearchPackagesViewModel: ObservableObject {
   struct Environment {
     var search: (String) -> AnyPublisher<[Package], Error>
     var detail: (Package.ID) -> AnyPublisher<PackageDetail, Error>
@@ -34,8 +34,8 @@ class SearchPackagesViewModel: ObservableObject {
     self.environment = environment
 
     let clearSearch = $query.filter(\.isEmpty)
-    let runSearch = actions.compactMap { $0 == .search ? self.query : nil }.removeDuplicates()
-    let retrySearch = actions.compactMap { $0 == .retry ? self.query : nil }
+    let runSearch = actions.compactMap { [weak self] in $0 == .search ? self?.query : nil }.removeDuplicates()
+    let retrySearch = actions.compactMap { [weak self] in $0 == .retry ? self?.query : nil }
 
     Publishers
       .Merge3(clearSearch, runSearch, retrySearch)
@@ -96,7 +96,7 @@ extension SearchPackagesViewModel {
 }
 
 struct SearchPackagesView: View {
-  @ObservedObject var viewModel: SearchPackagesViewModel
+  @StateObject var viewModel: SearchPackagesViewModel
 
   var body: some View {
     VStack(spacing: 0) {

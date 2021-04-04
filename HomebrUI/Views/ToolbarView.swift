@@ -2,9 +2,14 @@ import Combine
 import SwiftUI
 
 struct ToolbarView: ToolbarContent {
-  let operations: AnyPublisher<[HomebrewOperation], Never>
+  private let operationViewModel: OperationInfoViewModel
 
   @Binding var isInfoPopoverPresented: Bool
+
+  init(operations: AnyPublisher<[HomebrewOperation], Never>, isInfoPopoverPresented: Binding<Bool>) {
+    self._isInfoPopoverPresented = isInfoPopoverPresented
+    self.operationViewModel = OperationInfoViewModel(environment: .init(operations: operations))
+  }
 
   var body: some ToolbarContent {
     ToolbarItem(placement: .navigation) {
@@ -20,12 +25,10 @@ struct ToolbarView: ToolbarContent {
         Label("Info", systemImage: "info.circle")
       }
       .popover(isPresented: $isInfoPopoverPresented) {
-        OperationInfoView(
-          viewModel: OperationInfoViewModel(environment: .init(operations: operations))
-        )
+        OperationInfoView(viewModel: operationViewModel)
       }
       .keyboardShortcut("i", modifiers: .command)
-      .help("Show or hide Hombrew operation info")
+      .help("Show or hide Homebrew operation info")
     }
   }
 }

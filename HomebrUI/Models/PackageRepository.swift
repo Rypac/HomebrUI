@@ -6,7 +6,7 @@ struct InstalledPackages {
   var casks: [Package]
 }
 
-class PackageRepository {
+final class PackageRepository {
   private enum PackageState {
     case empty
     case loaded(InstalledPackages)

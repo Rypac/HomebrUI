@@ -16,6 +16,7 @@
 		9421EF19258AE77E00C0EC8B /* HomebrewCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9421EF18258AE77E00C0EC8B /* HomebrewCommand.swift */; };
 		9421EF1E258AF51100C0EC8B /* ProcessOperation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9421EF1D258AF51100C0EC8B /* ProcessOperation.swift */; };
 		9421EF23258AF77600C0EC8B /* HomebrewConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9421EF22258AF77600C0EC8B /* HomebrewConfiguration.swift */; };
+		9465923E261988990068A50D /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9465923D261988990068A50D /* ContentView.swift */; };
 		94B042962589666B00222EEF /* HomebrUIApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94B042952589666B00222EEF /* HomebrUIApp.swift */; };
 		94B0429A2589666C00222EEF /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 94B042992589666C00222EEF /* Assets.xcassets */; };
 		94B0429D2589666C00222EEF /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 94B0429C2589666C00222EEF /* Preview Assets.xcassets */; };
@@ -45,6 +46,7 @@
 		9421EF1D258AF51100C0EC8B /* ProcessOperation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProcessOperation.swift; sourceTree = "<group>"; };
 		9421EF22258AF77600C0EC8B /* HomebrewConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomebrewConfiguration.swift; sourceTree = "<group>"; };
 		9421EF2B258B0A8C00C0EC8B /* AppCommands.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppCommands.swift; sourceTree = "<group>"; };
+		9465923D261988990068A50D /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		947218162593384700F4B584 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		94B042922589666B00222EEF /* HomebrUI.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = HomebrUI.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		94B042952589666B00222EEF /* HomebrUIApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomebrUIApp.swift; sourceTree = "<group>"; };
@@ -158,6 +160,7 @@
 		94E4A24C2589BD1400CC1C7D /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				9465923D261988990068A50D /* ContentView.swift */,
 				94E4A2512589BD3A00CC1C7D /* Input.swift */,
 				94E4A24D2589BD1F00CC1C7D /* InstalledPackagesView.swift */,
 				94C12122258B22700014E558 /* OperationInfoView.swift */,
@@ -206,7 +209,7 @@
 			isa = PBXProject;
 			attributes = {
 				LastSwiftUpdateCheck = 1230;
-				LastUpgradeCheck = 1230;
+				LastUpgradeCheck = 1240;
 				TargetAttributes = {
 					94B042912589666B00222EEF = {
 						CreatedOnToolsVersion = 12.3;
@@ -249,6 +252,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				94E615AA258ABFAA000D432C /* AsyncOperation.swift in Sources */,
+				9465923E261988990068A50D /* ContentView.swift in Sources */,
 				94E4A24A2589A3D400CC1C7D /* PackageRepository.swift in Sources */,
 				94E4A24E2589BD1F00CC1C7D /* InstalledPackagesView.swift in Sources */,
 				9417F099258C123C008679E8 /* AppCommands.swift in Sources */,
@@ -399,6 +403,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = HomebrUI/HomebrUI.entitlements;
+				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"HomebrUI/Preview Content\"";
@@ -423,6 +428,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = HomebrUI/HomebrUI.entitlements;
+				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"HomebrUI/Preview Content\"";
