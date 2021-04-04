@@ -1,9 +1,7 @@
 import Foundation
 
 struct Package: Identifiable, Equatable {
-  typealias ID = HomebrewID
-
-  let id: ID
+  let id: HomebrewID
   var name: String
   var description: String?
   var homepage: URL

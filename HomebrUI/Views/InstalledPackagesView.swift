@@ -5,7 +5,7 @@ final class InstalledPackagesViewModel: ObservableObject {
   struct Environment {
     var packages: AnyPublisher<InstalledPackages, Never>
     var isRefreshing: AnyPublisher<Bool, Never>
-    var detail: (Package.ID) -> AnyPublisher<PackageDetail, Error>
+    var detail: (Package) -> AnyPublisher<PackageDetail, Error>
     var load: (Package.ID) -> Void
     var install: (Package.ID) -> Void
     var uninstall: (Package.ID) -> Void
@@ -55,7 +55,7 @@ final class InstalledPackagesViewModel: ObservableObject {
   func detailViewModel(for package: Package) -> PackageDetailViewModel {
     PackageDetailViewModel(
       environment: .init(
-        package: environment.detail(package.id),
+        package: environment.detail(package),
         load: { [load = environment.load] in load(package.id) },
         install: { [install = environment.install] in install(package.id) },
         uninstall: { [uninstall = environment.uninstall] in uninstall(package.id) }
@@ -142,7 +142,7 @@ private struct PackageListView: View {
   let action: (Action) -> Void
 
   var body: some View {
-    List {
+    List(selection: $selection) {
       if packages.hasFormulae {
         Section(header: Text("Formulae")) {
           ForEach(packages.formulae, content: packageRow)
@@ -160,11 +160,7 @@ private struct PackageListView: View {
   }
 
   private func packageRow(_ package: Package) -> some View {
-    NavigationLink(
-      destination: PackageDetailView(viewModel: detailViewModel(package)),
-      tag: package.id,
-      selection: $selection
-    ) {
+    NavigationLink(destination: PackageDetailView(viewModel: detailViewModel(package))) {
       HStack {
         Text(package.name)
           .layoutPriority(1)
@@ -176,6 +172,7 @@ private struct PackageListView: View {
         }
       }
     }
+    .tag(package.id)
     .contextMenu {
       Button("View Homepage") {
         action(.viewHomepage(package))

@@ -4,7 +4,7 @@ import SwiftUI
 final class SearchPackagesViewModel: ObservableObject {
   struct Environment {
     var search: (String) -> AnyPublisher<[Package], Error>
-    var detail: (Package.ID) -> AnyPublisher<PackageDetail, Error>
+    var detail: (Package) -> AnyPublisher<PackageDetail, Error>
     var load: (Package.ID) -> Void
     var install: (Package.ID) -> Void
     var uninstall: (Package.ID) -> Void
@@ -70,7 +70,7 @@ final class SearchPackagesViewModel: ObservableObject {
   func detailViewModel(for package: Package) -> PackageDetailViewModel {
     PackageDetailViewModel(
       environment: .init(
-        package: environment.detail(package.id),
+        package: environment.detail(package),
         load: { [load = environment.load] in load(package.id) },
         install: { [install = environment.install] in install(package.id) },
         uninstall: { [uninstall = environment.uninstall] in uninstall(package.id) }

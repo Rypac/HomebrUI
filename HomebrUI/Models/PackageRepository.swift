@@ -224,11 +224,13 @@ extension PackageRepository {
       .eraseToAnyPublisher()
   }
 
-  func detail(for packageID: Package.ID) -> AnyPublisher<PackageDetail, Error> {
-    package(id: packageID)
+  func detail(for package: Package) -> AnyPublisher<PackageDetail, Error> {
+    refreshedPackage(id: package.id)
+      .prepend(package)
+      .removeDuplicates()
       .map { [activityState] package in
         activityState
-          .filter { $0.id == packageID }
+          .filter { $0.id == package.id }
           .scan(PackageDetail(package: package, activity: nil)) { detail, state in
             var detail = detail
             switch (state.action, state.status) {
@@ -250,20 +252,14 @@ extension PackageRepository {
       .eraseToAnyPublisher()
   }
 
-  private func package(id: Package.ID) -> AnyPublisher<Package, Error> {
+  private func refreshedPackage(id: Package.ID) -> AnyPublisher<Package, Error> {
     let installedPackageVersion = packageState
       .map { state -> String? in
         guard case let .loaded(packages) = state else {
           return nil
         }
 
-        if let package = packages.formulae.first(where: { $0.id == id }) {
-          return package.installedVersion
-        }
-        if let package = packages.casks.first(where: { $0.id == id }) {
-          return package.installedVersion
-        }
-        return nil
+        return packages[id]?.installedVersion
       }
       .setFailureType(to: Error.self)
 
@@ -275,7 +271,7 @@ extension PackageRepository {
 
         return homebrew.info(for: [id])
           .tryMap { info in
-            guard let package = info.packages.first(where: { $0.id == id }) else {
+            guard let package = info[id] else {
               throw MissingPackageError(id: id)
             }
             return package
@@ -300,8 +296,20 @@ private struct MissingPackageError: LocalizedError {
   var errorDescription: String { "Missing package \"\(id)\"" }
 }
 
+private extension InstalledPackages {
+  subscript(id: Package.ID) -> Package? {
+    formulae.first(where: { $0.id == id }) ?? casks.first(where: { $0.id == id })
+  }
+}
+
 private extension HomebrewInfo {
-  var packages: [Package] {
-    formulae.map(Package.init(formulae:)) + casks.map(Package.init(cask:))
+  subscript(id: Package.ID) -> Package? {
+    if let formulae = formulae.first(where: { $0.id == id }) {
+      return Package(formulae: formulae)
+    }
+    if let cask = casks.first(where: { $0.id == id }) {
+      return Package(cask: cask)
+    }
+    return nil
   }
 }

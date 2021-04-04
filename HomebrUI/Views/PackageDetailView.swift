@@ -100,7 +100,7 @@ private struct LoadedPackageDetailView: View {
         Text(package.name)
           .font(.title)
         Spacer()
-        if activity == .installing || activity == .uninstalling {
+        if activity != nil {
           ProgressView()
             .scaleEffect(0.5)
         }
@@ -122,18 +122,10 @@ private struct LoadedPackageDetailView: View {
       }
       Link(package.homepage.absoluteString, destination: package.homepage)
       if let version = package.installedVersion {
-        HStack(spacing: 8) {
-          Text("Installed Version:")
-          Text(version)
-            .foregroundColor(.secondary)
-        }
+          Text("Installed Version: ") + Text(version).foregroundColor(.secondary)
       }
-      HStack(spacing: 8) {
-        Text("Latest Version:")
-        Text(package.latestVersion)
-          .foregroundColor(.secondary)
-      }
-      Spacer()
+      Text("Latest Version: ") + Text(package.latestVersion).foregroundColor(.secondary)
+      Spacer(minLength: 0)
     }
     .padding()
     .frame(minWidth: 300)
