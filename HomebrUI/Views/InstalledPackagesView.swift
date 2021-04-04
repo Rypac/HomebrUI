@@ -3,7 +3,7 @@ import SwiftUI
 
 final class InstalledPackagesViewModel: ObservableObject {
   struct Environment {
-    var packages: AnyPublisher<InstalledPackages, Never>
+    var packages: AnyPublisher<Packages, Never>
     var isRefreshing: AnyPublisher<Bool, Never>
     var detail: (Package) -> AnyPublisher<PackageDetail, Error>
     var load: (Package.ID) -> Void
@@ -14,7 +14,7 @@ final class InstalledPackagesViewModel: ObservableObject {
   enum State {
     case empty
     case loading
-    case loaded(InstalledPackages, refreshing: Bool)
+    case loaded(Packages, refreshing: Bool)
   }
 
   @Published private(set) var packageState: State = .empty
@@ -32,7 +32,7 @@ final class InstalledPackagesViewModel: ObservableObject {
         if query.isEmpty {
           return packages
         }
-        return InstalledPackages(
+        return Packages(
           formulae: packages.formulae.filter { package in
             package.name.localizedCaseInsensitiveContains(query)
           },
@@ -136,7 +136,7 @@ private struct PackageListView: View {
     case uninstall(Package)
   }
 
-  let packages: InstalledPackages
+  let packages: Packages
   let detailViewModel: (Package) -> PackageDetailViewModel
   @Binding var selection: Package.ID?
   let action: (Action) -> Void
@@ -200,9 +200,4 @@ private struct PackageRefreshIndicator: View {
       .padding(.bottom, 8)
     }
   }
-}
-
-private extension InstalledPackages {
-  var hasFormulae: Bool { !formulae.isEmpty }
-  var hasCasks: Bool { !casks.isEmpty }
 }

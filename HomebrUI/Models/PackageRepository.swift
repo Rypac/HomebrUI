@@ -1,15 +1,22 @@
 import Combine
 import Foundation
 
-struct InstalledPackages {
+struct Packages {
   var formulae: [Package]
   var casks: [Package]
+}
+
+extension Packages {
+  var count: Int { formulae.count + casks.count }
+  var isEmpty: Bool { formulae.isEmpty && casks.isEmpty }
+  var hasFormulae: Bool { !formulae.isEmpty }
+  var hasCasks: Bool { !casks.isEmpty }
 }
 
 final class PackageRepository {
   private enum PackageState {
     case empty
-    case loaded(InstalledPackages)
+    case loaded(Packages)
   }
 
   private enum RefreshState {
@@ -61,7 +68,7 @@ final class PackageRepository {
             }
           )
           .map { info in
-            InstalledPackages(
+            Packages(
               formulae: info.formulae.compactMap { formulae in
                 guard formulae.installed.first?.installedOnRequest == true else {
                   return nil
@@ -72,7 +79,7 @@ final class PackageRepository {
             )
           }
           .catch { _ in
-            Just(InstalledPackages(formulae: [], casks: []))
+            Just(Packages(formulae: [], casks: []))
           }
       }
       .switchToLatest()
@@ -165,7 +172,7 @@ final class PackageRepository {
 }
 
 extension PackageRepository {
-  var packages: AnyPublisher<InstalledPackages, Never> {
+  var packages: AnyPublisher<Packages, Never> {
     packageState
       .compactMap { state in
         guard case let .loaded(packages) = state else {
@@ -182,7 +189,7 @@ extension PackageRepository {
       .eraseToAnyPublisher()
   }
 
-  func searchForPackage(withName query: String) -> AnyPublisher<[Package], Error> {
+  func searchForPackage(withName query: String) -> AnyPublisher<Packages, Error> {
     homebrew.search(for: query)
       .map { [homebrew] result in
         Publishers.Zip(
@@ -194,23 +201,23 @@ extension PackageRepository {
       .switchToLatest()
       .combineLatest(installedVersions.setFailureType(to: Error.self))
       .map { info, versions in
-        var packages: [Package] = []
-        info.formulae.forEach { formulae in
+        var packages = Packages(formulae: [], casks: [])
+        for formulae in info.formulae {
           var package = Package(formulae: formulae)
           package.installedVersion = versions[formulae.id]
-          packages.append(package)
+          packages.formulae.append(package)
         }
-        info.casks.forEach { cask in
+        for cask in info.casks {
           var package = Package(cask: cask)
           package.installedVersion = versions[cask.id]
-          packages.append(package)
+          packages.casks.append(package)
         }
         return packages
       }
       .eraseToAnyPublisher()
   }
 
-  var installedVersions: AnyPublisher<[Package.ID: String], Never> {
+  private var installedVersions: AnyPublisher<[Package.ID: String], Never> {
     packageState
       .map { state in
         guard case let .loaded(packages) = state else {
@@ -296,7 +303,7 @@ private struct MissingPackageError: LocalizedError {
   var errorDescription: String { "Missing package \"\(id)\"" }
 }
 
-private extension InstalledPackages {
+private extension Packages {
   subscript(id: Package.ID) -> Package? {
     formulae.first(where: { $0.id == id }) ?? casks.first(where: { $0.id == id })
   }

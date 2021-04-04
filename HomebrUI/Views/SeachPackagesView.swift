@@ -3,7 +3,7 @@ import SwiftUI
 
 final class SearchPackagesViewModel: ObservableObject {
   struct Environment {
-    var search: (String) -> AnyPublisher<[Package], Error>
+    var search: (String) -> AnyPublisher<Packages, Error>
     var detail: (Package) -> AnyPublisher<PackageDetail, Error>
     var load: (Package.ID) -> Void
     var install: (Package.ID) -> Void
@@ -13,7 +13,7 @@ final class SearchPackagesViewModel: ObservableObject {
   enum State {
     case empty
     case loading
-    case loaded([Package])
+    case loaded(Packages)
     case noResults
     case error(String)
   }
@@ -149,18 +149,54 @@ private struct SearchLoadingView: View {
 }
 
 private struct SearchResultsView: View {
-  let results: [Package]
+  let results: Packages
   let detailViewModel: (Package) -> PackageDetailViewModel
 
   var body: some View {
     List {
-      Section(header: Text("\(results.count) results")) {
-        ForEach(results) { result in
-          NavigationLink(
-            result.name,
-            destination: PackageDetailView(viewModel: detailViewModel(result))
-          )
+      if results.hasFormulae {
+        SearchResultsSectionView(
+          title: "Formulae",
+          results: results.formulae,
+          detailViewModel: detailViewModel
+        )
+      }
+      if results.hasFormulae && results.hasCasks {
+        Divider()
+      }
+      if results.hasCasks {
+        SearchResultsSectionView(
+          title: "Casks",
+          results: results.casks,
+          detailViewModel: detailViewModel
+        )
+      }
+    }
+  }
+}
+
+private struct SearchResultsSectionView: View {
+  let title: String
+  let results: [Package]
+  let detailViewModel: (Package) -> PackageDetailViewModel
+
+  var body: some View {
+    Section(
+      header: HStack {
+        Text(title)
+        Spacer(minLength: 8)
+        if results.count == 1 {
+          Text("\(results.count) result")
+        } else {
+          Text("\(results.count) results")
         }
+      }
+    ) {
+      ForEach(results) { result in
+        NavigationLink(
+          result.name,
+          destination: PackageDetailView(viewModel: detailViewModel(result))
+        )
       }
     }
   }
