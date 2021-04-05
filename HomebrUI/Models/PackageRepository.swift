@@ -24,8 +24,8 @@ final class PackageRepository {
     case refreshing
   }
 
-  private struct ActivityState {
-    enum Action { case install, uninstall }
+  private struct ActivityState: Equatable {
+    enum Action { case install, uninstall, update }
     enum Status { case started, completed, failed }
 
     var id: Package.ID
@@ -224,8 +224,12 @@ extension PackageRepository {
           return [:]
         }
         var packageVersions: [Package.ID: String] = [:]
-        packages.formulae.forEach { packageVersions[$0.id] = $0.installedVersion }
-        packages.casks.forEach { packageVersions[$0.id] = $0.installedVersion }
+        for formulae in packages.formulae {
+          packageVersions[formulae.id] = formulae.installedVersion
+        }
+        for cask in packages.casks {
+          packageVersions[cask.id] = cask.installedVersion
+        }
         return packageVersions
       }
       .eraseToAnyPublisher()
@@ -246,8 +250,11 @@ extension PackageRepository {
             case (.uninstall, .completed):
               detail.activity = nil
               detail.package.installedVersion = nil
-            case (.install, .started), (.install, .completed):
+            case (.install, .started):
               detail.activity = .installing
+            case (.install, .completed):
+              detail.activity = nil
+              detail.package.installedVersion = package.latestVersion
             default:
               detail.activity = nil
             }
