@@ -138,6 +138,8 @@ private struct SearchInfoView: View {
   var body: some View {
     Spacer()
     Text("Search for a Homebrew package")
+      .font(.callout)
+      .foregroundColor(.secondary)
   }
 }
 
@@ -206,6 +208,8 @@ private struct NoSearchResultsView: View {
   var body: some View {
     Spacer()
     Text("No packages found")
+      .font(.callout)
+      .foregroundColor(.secondary)
   }
 }
 
