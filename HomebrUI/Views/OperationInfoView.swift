@@ -31,13 +31,15 @@ struct OperationInfoView: View {
     VStack {
       Text("Homebrew Operations")
       List(viewModel.operations) { operation in
-        Text(operation.name)
-        Spacer()
-        Text(operation.status)
+        HStack {
+          Text(operation.name)
+          Spacer()
+          Text(operation.status)
+        }
       }
-      .listStyle(SidebarListStyle())
+      .listStyle(.sidebar)
     }
-    .padding()
+    .padding(.top)
     .frame(minWidth: 350, minHeight: 400)
   }
 }

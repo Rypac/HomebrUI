@@ -116,7 +116,6 @@ struct InstalledPackagesView: View {
         }
       }
     }
-    .frame(minWidth: 250, maxWidth: 300)
   }
 }
 
@@ -125,7 +124,7 @@ private struct PackageFilterView: View {
 
   var body: some View {
     TextField("Filter", text: $query)
-      .textFieldStyle(RoundedBorderTextFieldStyle())
+      .textFieldStyle(.roundedBorder)
       .padding(8)
   }
 }
@@ -160,7 +159,9 @@ private struct PackageListView: View {
   }
 
   private func packageRow(_ package: Package) -> some View {
-    NavigationLink(destination: PackageDetailView(viewModel: detailViewModel(package))) {
+    NavigationLink {
+      PackageDetailView(viewModel: detailViewModel(package))
+    } label: {
       HStack {
         Text(package.name)
           .layoutPriority(1)

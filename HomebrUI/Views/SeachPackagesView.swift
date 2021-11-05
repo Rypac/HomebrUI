@@ -129,7 +129,7 @@ private struct PackageSearchField: View {
   var body: some View {
     TextField("Search", text: $query, onCommit: submit)
       .disableAutocorrection(true)
-      .textFieldStyle(RoundedBorderTextFieldStyle())
+      .textFieldStyle(.roundedBorder)
       .padding(8)
   }
 }
@@ -195,10 +195,9 @@ private struct SearchResultsSectionView: View {
       }
     ) {
       ForEach(results) { result in
-        NavigationLink(
-          result.name,
-          destination: PackageDetailView(viewModel: detailViewModel(result))
-        )
+        NavigationLink(result.name) {
+          PackageDetailView(viewModel: detailViewModel(result))
+        }
       }
     }
   }

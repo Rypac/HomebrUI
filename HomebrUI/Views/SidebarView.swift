@@ -14,22 +14,27 @@ struct SidebarView: View {
   var body: some View {
     NavigationView {
       List(selection: $selectedSidebarItem) {
-        NavigationLink(destination: InstalledPackagesView(viewModel: installedViewModel)) {
+        NavigationLink {
+          InstalledPackagesView(viewModel: installedViewModel)
+        } label: {
           Label("Installed", systemImage: "shippingbox")
         }
         .tag(SidebarItem.installed)
-        NavigationLink(destination: SearchPackagesView(viewModel: searchViewModel)) {
+        NavigationLink {
+          SearchPackagesView(viewModel: searchViewModel)
+        } label: {
           Label("Search", systemImage: "magnifyingglass")
         }
         .tag(SidebarItem.search)
       }
-      .listStyle(SidebarListStyle())
-      .navigationTitle("HomebrUI")
+      .listStyle(.sidebar)
       .frame(minWidth: 200, maxWidth: 300)
 
       PackageListPlaceholderView()
+        .frame(minWidth: 250, maxWidth: 300)
       PackageDetailPlaceholderView()
     }
+    .navigationTitle("HomebrUI")
     .focusedValue(
       \.selectedSidebarItem,
       $selectedSidebarItem.nonOptional(withDefault: .installed)
