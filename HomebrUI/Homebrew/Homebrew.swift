@@ -12,88 +12,78 @@ struct Homebrew {
     queue.operationPublisher
   }
 
-  func installedPackages() -> AnyPublisher<HomebrewInfo, Error> {
-    queue.run(.list)
-      .tryMap { result in
-        guard result.status == 0 else {
-          throw HomebrewError(processResult: result)
-        }
-        return try JSONDecoder().decode(HomebrewInfo.self, from: result.standardOutput)
-      }
-      .eraseToAnyPublisher()
+  func installedPackages() async throws -> HomebrewInfo {
+    let result = try await queue.run(.list)
+
+    guard result.status == 0 else {
+      throw HomebrewError(processResult: result)
+    }
+    return try JSONDecoder().decode(HomebrewInfo.self, from: result.standardOutput)
   }
 
-  func search(for query: String) -> AnyPublisher<HomebrewSearchInfo, Error> {
-    queue.run(.search(query))
-      .tryMap { result in
-        guard result.status == 0 else {
-          let errorMessage = String(decoding: result.standardError, as: UTF8.self)
-          guard errorMessage.hasPrefix("Error: No formulae or casks found for") else {
-            throw HomebrewError(processResult: result)
-          }
-          return HomebrewSearchInfo(formulae: [], casks: [])
-        }
+  func search(for query: String) async throws -> HomebrewSearchInfo {
+    let result = try await queue.run(.search(query))
 
-        enum SearchResult { case formulae, cask }
-        var searchResult: SearchResult?
-
-        return String(decoding: result.standardOutput, as: UTF8.self)
-          .split(separator: "\n")
-          .reduce(into: HomebrewSearchInfo(formulae: [], casks: [])) { search, line in
-            switch line {
-            case "==> Formulae":
-              searchResult = .formulae
-            case "==> Casks":
-              searchResult = .cask
-            case let line where !line.isEmpty:
-              if searchResult == .formulae {
-                search.formulae.append(HomebrewID(rawValue: String(line)))
-              } else if searchResult == .cask {
-                search.casks.append(HomebrewID(rawValue: String(line)))
-              }
-            default:
-              break
-            }
-          }
+    guard result.status == 0 else {
+      let errorMessage = String(decoding: result.standardError, as: UTF8.self)
+      guard errorMessage.hasPrefix("Error: No formulae or casks found for") else {
+        throw HomebrewError(processResult: result)
       }
-      .eraseToAnyPublisher()
-  }
-
-  func info(for packages: [HomebrewID]) -> AnyPublisher<HomebrewInfo, Error> {
-    if packages.isEmpty {
-      return .just(HomebrewInfo(formulae: [], casks: []))
+      return HomebrewSearchInfo(formulae: [], casks: [])
     }
 
-    return queue.run(.info(packages))
-      .tryMap { result in
-        guard result.status == 0 else {
-          throw HomebrewError(processResult: result)
+    enum SearchResult { case formulae, cask }
+    var searchResult: SearchResult?
+
+    return String(decoding: result.standardOutput, as: UTF8.self)
+      .split(separator: "\n")
+      .reduce(into: HomebrewSearchInfo(formulae: [], casks: [])) { search, line in
+        switch line {
+        case "==> Formulae":
+          searchResult = .formulae
+        case "==> Casks":
+          searchResult = .cask
+        case let line where !line.isEmpty:
+          if searchResult == .formulae {
+            search.formulae.append(HomebrewID(rawValue: String(line)))
+          } else if searchResult == .cask {
+            search.casks.append(HomebrewID(rawValue: String(line)))
+          }
+        default:
+          break
         }
-        return try JSONDecoder().decode(HomebrewInfo.self, from: result.standardOutput)
       }
-      .eraseToAnyPublisher()
   }
 
-  func installFormulae(ids: [HomebrewID]) -> AnyPublisher<String, Error> {
-    queue.run(.install(ids))
-      .tryMap { result in
-        guard result.status == 0 else {
-          throw HomebrewError(processResult: result)
-        }
-        return String(decoding: result.standardOutput, as: UTF8.self)
-      }
-      .eraseToAnyPublisher()
+  func info(for packages: [HomebrewID]) async throws -> HomebrewInfo {
+    if packages.isEmpty {
+      return HomebrewInfo(formulae: [], casks: [])
+    }
+
+    let result = try await queue.run(.info(packages))
+
+    guard result.status == 0 else {
+      throw HomebrewError(processResult: result)
+    }
+    return try JSONDecoder().decode(HomebrewInfo.self, from: result.standardOutput)
   }
 
-  func uninstallFormulae(ids: [HomebrewID]) -> AnyPublisher<String, Error> {
-    queue.run(.uninstall(ids))
-      .tryMap { result in
-        guard result.status == 0 else {
-          throw HomebrewError(processResult: result)
-        }
-        return String(decoding: result.standardOutput, as: UTF8.self)
-      }
-      .eraseToAnyPublisher()
+  func installFormulae(ids: [HomebrewID]) async throws -> String {
+    let result = try await queue.run(.install(ids))
+
+    guard result.status == 0 else {
+      throw HomebrewError(processResult: result)
+    }
+    return String(decoding: result.standardOutput, as: UTF8.self)
+  }
+
+  func uninstallFormulae(ids: [HomebrewID]) async throws -> String {
+    let result = try await queue.run(.uninstall(ids))
+
+    guard result.status == 0 else {
+      throw HomebrewError(processResult: result)
+    }
+    return String(decoding: result.standardOutput, as: UTF8.self)
   }
 }
 

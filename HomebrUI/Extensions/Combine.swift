@@ -17,3 +17,49 @@ extension AnyPublisher {
       .eraseToAnyPublisher()
   }
 }
+
+extension Publisher {
+  public func asyncMap<T>(
+    _ transform: @escaping (Output) async -> T
+  ) -> Publishers.FlatMap<Future<T, Never>, Self> {
+    flatMap { value in
+      Future { promise in
+        Task {
+          promise(.success(await transform(value)))
+        }
+      }
+    }
+  }
+
+  public func asyncTryMap<T>(
+    _ transform: @escaping (Output) async throws -> T
+  ) -> Publishers.FlatMap<Future<T, Error>, Self> {
+    flatMap { value in
+      Future { promise in
+        Task {
+          do {
+            promise(.success(try await transform(value)))
+          } catch {
+            promise(.failure(error))
+          }
+        }
+      }
+    }
+  }
+
+  public func asyncTryMap<T>(
+    _ transform: @escaping (Output) async throws -> T
+  ) -> Publishers.FlatMap<Future<T, Error>, Publishers.SetFailureType<Self, Error>> {
+    flatMap { value in
+      Future { promise in
+        Task {
+          do {
+            promise(.success(try await transform(value)))
+          } catch {
+            promise(.failure(error))
+          }
+        }
+      }
+    }
+  }
+}

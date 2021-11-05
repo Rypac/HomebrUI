@@ -75,6 +75,10 @@ final class HomebrewOperationQueue {
       .eraseToAnyPublisher()
   }
 
+  func run(_ command: HomebrewCommand) async throws -> ProcessResult {
+    fatalError()
+  }
+
   @discardableResult
   func enqueue(_ command: HomebrewCommand) -> HomebrewOperation.ID {
     let id = HomebrewOperation.ID()

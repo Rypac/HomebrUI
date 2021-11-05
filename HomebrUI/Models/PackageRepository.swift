@@ -57,32 +57,30 @@ final class PackageRepository {
 
     actions
       .filter { $0 == .refresh(.installed) }
-      .map { [refreshState] _ in
-        homebrew.installedPackages()
-          .handleEvents(
-            receiveSubscription: { _ in
-              refreshState.send(.refreshing)
+      .asyncMap { [refreshState] _ in
+        refreshState.send(.refreshing)
+
+        let packages: Packages
+
+        do {
+          let info = try await homebrew.installedPackages()
+          packages = Packages(
+            formulae: info.formulae.compactMap { formulae in
+              guard formulae.installed.first?.installedOnRequest == true else {
+                return nil
+              }
+              return Package(formulae: formulae)
             },
-            receiveCompletion: { _ in
-              refreshState.send(.idle)
-            }
+            casks: info.casks.map(Package.init(cask:))
           )
-          .map { info in
-            Packages(
-              formulae: info.formulae.compactMap { formulae in
-                guard formulae.installed.first?.installedOnRequest == true else {
-                  return nil
-                }
-                return Package(formulae: formulae)
-              },
-              casks: info.casks.map(Package.init(cask:))
-            )
-          }
-          .catch { _ in
-            Just(Packages(formulae: [], casks: []))
-          }
+        } catch {
+          packages = Packages(formulae: [], casks: [])
+        }
+
+        refreshState.send(.idle)
+
+        return packages
       }
-      .switchToLatest()
       .receive(on: DispatchQueue.main)
       .sink { [packageState] installedPackages in
         packageState.send(.loaded(installedPackages))
