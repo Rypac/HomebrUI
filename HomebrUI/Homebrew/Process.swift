@@ -1,11 +1,6 @@
 import Combine
 import Foundation
 
-struct ProcessHandle: Identifiable {
-  let id: Int
-  let cancel: () -> Void
-}
-
 struct ProcessResult: Equatable {
   let status: Int
   let standardOutput: Data
@@ -16,57 +11,62 @@ extension Process {
   static func run(
     for url: URL,
     arguments: [String] = [],
-    qualityOfService: QualityOfService = .default,
-    handler: @escaping (ProcessResult) -> Void
-  ) throws -> ProcessHandle {
-    let task = Process()
-    task.executableURL = url
-    task.arguments = arguments
-    task.qualityOfService = qualityOfService
-
-    let outputPipe = Pipe()
-    let errorPipe = Pipe()
-
-    task.standardOutput = outputPipe
-    task.standardError = errorPipe
-
-    try task.run()
-
-    var outputData = Data()
-    var errorData = Data()
-
-    processQueue.addOperation {
-      outputPipe.read(into: &outputData)
-    }
-    processQueue.addOperation {
-      errorPipe.read(into: &errorData)
-    }
-    processQueue.addOperation {
-      task.waitUntilExit()
-    }
-
-    processQueue.addBarrierBlock {
-      handler(
-        ProcessResult(
-          status: Int(task.terminationStatus),
-          standardOutput: outputData,
-          standardError: errorData
-        )
-      )
-    }
-
-    return ProcessHandle(
-      id: Int(task.processIdentifier),
-      cancel: task.terminate
-    )
-  }
-
-  private static let processQueue: OperationQueue = {
+    qualityOfService: QualityOfService = .default
+  ) async throws -> ProcessResult {
     let queue = OperationQueue()
     queue.name = "Process Queue"
-    queue.maxConcurrentOperationCount = OperationQueue.defaultMaxConcurrentOperationCount
-    return queue
-  }()
+    queue.maxConcurrentOperationCount = 3
+    queue.qualityOfService = qualityOfService
+
+    let process = Process()
+    process.executableURL = url
+    process.arguments = arguments
+    process.qualityOfService = qualityOfService
+
+    return try await withTaskCancellationHandler {
+      try await withCheckedThrowingContinuation { continuation in
+        do {
+          let outputPipe = Pipe()
+          let errorPipe = Pipe()
+
+          process.standardOutput = outputPipe
+          process.standardError = errorPipe
+
+          try process.run()
+
+          var outputData = Data()
+          var errorData = Data()
+
+          queue.addOperation {
+            outputPipe.read(into: &outputData)
+          }
+          queue.addOperation {
+            errorPipe.read(into: &errorData)
+          }
+          queue.addOperation {
+            process.waitUntilExit()
+          }
+
+          queue.addBarrierBlock {
+            continuation.resume(
+              returning: ProcessResult(
+                status: Int(process.terminationStatus),
+                standardOutput: outputData,
+                standardError: errorData
+              )
+            )
+          }
+        } catch {
+          continuation.resume(throwing: error)
+        }
+      }
+    } onCancel: {
+      if process.isRunning {
+        process.terminate()
+      }
+      queue.cancelAllOperations()
+    }
+  }
 }
 
 private extension Pipe {

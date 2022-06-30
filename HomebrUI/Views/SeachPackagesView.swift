@@ -40,26 +40,21 @@ final class SearchPackagesViewModel: ObservableObject {
       .merge(with: actions.compactMap { [weak self] in $0 == .retry ? self?.query : nil })
       .filter { !$0.isEmpty }
 
-    let clearSearch = $query.filter(\.isEmpty)
-
-    Publishers.Merge(executeSearch, clearSearch)
-      .map { query -> AnyPublisher<State, Never> in
-        if query.isEmpty {
-          return .just(.empty)
-        }
-        return environment.search(query)
+    executeSearch
+      .map { query in
+        environment.search(query)
           .map { packages in
-            guard !packages.isEmpty else {
-              return .noResults
-            }
-            return .loaded(packages)
+            !packages.isEmpty ? .loaded(packages) : .noResults
           }
           .prepend(.loading)
           .catch { _ in Just(.error("Failed to load results")) }
-          .eraseToAnyPublisher()
       }
       .switchToLatest()
       .receive(on: DispatchQueue.main)
+      .assign(to: &$state)
+
+    $query
+      .compactMap { $0.isEmpty ? .empty : nil }
       .assign(to: &$state)
   }
 

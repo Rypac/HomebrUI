@@ -6,8 +6,6 @@ struct ContentView: View {
 
   @State private var isInfoPopoverPresented: Bool = false
 
-  @Environment(\.scenePhase) private var scenePhase
-
   var body: some View {
     SidebarView(repository: packageRepository)
       .toolbar {
@@ -16,10 +14,8 @@ struct ContentView: View {
           isInfoPopoverPresented: $isInfoPopoverPresented
         )
       }
-      .onChange(of: scenePhase) { newScenePhase in
-        if newScenePhase == .active {
-          packageRepository.refresh()
-        }
+      .task {
+        await packageRepository.refresh()
       }
   }
 }

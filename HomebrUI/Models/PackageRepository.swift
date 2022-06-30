@@ -13,6 +13,15 @@ extension Packages {
   var hasCasks: Bool { !casks.isEmpty }
 }
 
+fileprivate struct ActivityState: Equatable {
+  enum Action { case install, uninstall, update }
+  enum Status { case started, completed, failed }
+
+  var id: Package.ID
+  var action: Action
+  var status: Status
+}
+
 final class PackageRepository {
   private enum PackageState {
     case empty
@@ -22,15 +31,6 @@ final class PackageRepository {
   private enum RefreshState {
     case idle
     case refreshing
-  }
-
-  private struct ActivityState: Equatable {
-    enum Action { case install, uninstall, update }
-    enum Status { case started, completed, failed }
-
-    var id: Package.ID
-    var action: Action
-    var status: Status
   }
 
   private enum Action: Equatable {
@@ -56,66 +56,30 @@ final class PackageRepository {
     self.homebrew = homebrew
 
     actions
-      .filter { $0 == .refresh(.installed) }
-      .map { [refreshState] _ in
-        homebrew.installedPackages()
-          .handleEvents(
-            receiveSubscription: { _ in
-              refreshState.send(.refreshing)
-            },
-            receiveCompletion: { _ in
-              refreshState.send(.idle)
-            }
-          )
-          .map { info in
-            Packages(
-              formulae: info.formulae.compactMap { formulae in
-                guard formulae.installed.first?.installedOnRequest == true else {
-                  return nil
-                }
-                return Package(formulae: formulae)
-              },
-              casks: info.casks.map(Package.init(cask:))
-            )
+      .sink { [weak self] action in
+        if let self, action == .refresh(.installed) {
+          Task {
+            await self.refresh()
           }
-          .catch { _ in
-            Just(Packages(formulae: [], casks: []))
-          }
-      }
-      .switchToLatest()
-      .receive(on: DispatchQueue.main)
-      .sink { [packageState] installedPackages in
-        packageState.send(.loaded(installedPackages))
+        }
       }
       .store(in: &cancellables)
 
-    let installPackage = actions
-      .compactMap { action -> AnyPublisher<ActivityState, Never>? in
-        guard case let .install(id) = action else {
+    actions
+      .compactMap { [homebrew] action -> AnyPublisher<ActivityState, Never>? in
+        switch action {
+        case .install(let id):
+          return trackState { try await homebrew.installFormulae(ids: [id]) }
+            .map { ActivityState(id: id, action: .install, status: $0) }
+            .eraseToAnyPublisher()
+        case .uninstall(let id):
+          return trackState { try await homebrew.uninstallFormulae(ids: [id]) }
+            .map { ActivityState(id: id, action: .install, status: $0) }
+            .eraseToAnyPublisher()
+        case .refresh:
           return nil
         }
-        return homebrew.installFormulae(ids: [id])
-          .map { _ in .completed }
-          .catch { _ in Just(.failed) }
-          .prepend(.started)
-          .map { ActivityState(id: id, action: .install, status: $0) }
-          .eraseToAnyPublisher()
       }
-
-    let uninstallPackage = actions
-      .compactMap { action -> AnyPublisher<ActivityState, Never>? in
-        guard case let .uninstall(id) = action else {
-          return nil
-        }
-        return homebrew.uninstallFormulae(ids: [id])
-          .map { _ in .completed }
-          .catch { _ in Just(.failed) }
-          .prepend(.started)
-          .map { ActivityState(id: id, action: .uninstall, status: $0) }
-          .eraseToAnyPublisher()
-      }
-
-    Publishers.Merge(installPackage, uninstallPackage)
       .switchToLatest()
       .receive(on: DispatchQueue.main)
       .sink { [actions, packageState, activityState] state in
@@ -148,14 +112,35 @@ final class PackageRepository {
   }
 
   deinit {
-    cancellables.forEach { cancellable in
+    for cancellable in cancellables {
       cancellable.cancel()
     }
     cancellables.removeAll()
   }
 
-  func refresh() {
-    actions.send(.refresh(.installed))
+  @MainActor
+  func refresh() async {
+    refreshState.send(.refreshing)
+
+    let packages: Packages
+    do {
+      let info = try await homebrew.installedPackages()
+
+      packages = Packages(
+        formulae: info.formulae.compactMap { formulae in
+          guard formulae.installed.first?.installedOnRequest == true else {
+            return nil
+          }
+          return Package(formulae: formulae)
+        },
+        casks: info.casks.map(Package.init(cask:))
+      )
+    } catch {
+      packages = Packages(formulae: [], casks: [])
+    }
+
+    refreshState.send(.idle)
+    packageState.send(.loaded(packages))
   }
 
   func refresh(id: Package.ID) {
@@ -169,6 +154,22 @@ final class PackageRepository {
   func uninstall(id: Package.ID) {
     actions.send(.uninstall(id))
   }
+}
+
+private func trackState<OperationResult>(
+  operation: @escaping () async throws -> OperationResult
+) -> some Publisher<ActivityState.Status, Never> {
+  Future { promise in
+    Task {
+      do {
+        _ = try await operation()
+        promise(.success(.completed))
+      } catch {
+        promise(.success(.failed))
+      }
+    }
+  }
+  .prepend(.started)
 }
 
 extension PackageRepository {
@@ -188,15 +189,7 @@ extension PackageRepository {
   }
 
   func searchForPackage(withName query: String) -> some Publisher<Packages, Error> {
-    homebrew.search(for: query)
-      .map { [homebrew] result in
-        Publishers.Zip(
-          homebrew.info(for: result.formulae).map(\.formulae),
-          homebrew.info(for: result.casks).map(\.casks)
-        )
-        .map(HomebrewInfo.init)
-      }
-      .switchToLatest()
+    homebrew.searchPublisher(for: query)
       .combineLatest(installedVersions.setFailureType(to: Error.self))
       .map { info, versions in
         var packages = Packages(formulae: [], casks: [])
@@ -273,21 +266,15 @@ extension PackageRepository {
       .setFailureType(to: Error.self)
 
     let refreshedPackage = actions
-      .compactMap { [homebrew] action -> AnyPublisher<Package, Error>? in
-        guard case .refresh(.only(id)) = action else {
-          return nil
+      .filter { $0 == .refresh(.only(id)) }
+      .asyncTryMap { [homebrew] _ in
+        let info = try await homebrew.info(for: [id])
+        guard let package = info[id] else {
+          throw MissingPackageError(id: id)
         }
 
-        return homebrew.info(for: [id])
-          .tryMap { info in
-            guard let package = info[id] else {
-              throw MissingPackageError(id: id)
-            }
-            return package
-          }
-          .eraseToAnyPublisher()
+        return package
       }
-      .switchToLatest()
 
     return Publishers.CombineLatest(refreshedPackage, installedPackageVersion)
       .map { package, version in
@@ -295,6 +282,31 @@ extension PackageRepository {
         package.installedVersion = version
         return package
       }
+  }
+}
+
+private extension Homebrew {
+  func searchAsync(for query: String) async throws -> HomebrewInfo {
+    let searchResult = try await search(for: query)
+
+    async let formulaeInfo = info(for: searchResult.formulae)
+    async let casksInfo = info(for: searchResult.casks)
+
+    return try await HomebrewInfo(formulae: formulaeInfo.formulae, casks: casksInfo.casks)
+  }
+
+  func searchPublisher(for query: String) -> some Publisher<HomebrewInfo, Error> {
+    Deferred {
+      Future { promise in
+        Task {
+          do {
+            promise(.success(try await searchAsync(for: query)))
+          } catch {
+            promise(.failure(error))
+          }
+        }
+      }
+    }
   }
 }
 

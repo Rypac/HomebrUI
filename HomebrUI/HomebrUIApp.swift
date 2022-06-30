@@ -6,7 +6,7 @@ struct HomebrUIApp: App {
   private let operationRepository: OperationRepository
 
   init() {
-    let homebrew = Homebrew()
+    let homebrew = Homebrew(queue: HomebrewOperationQueue(configuration: .default))
     packageRepository = PackageRepository(homebrew: homebrew)
     operationRepository = OperationRepository(homebrew: homebrew)
   }

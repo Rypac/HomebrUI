@@ -17,115 +17,18 @@ struct HomebrewOperation: Identifiable {
   var status: Status
 }
 
-// Homebrew does not allow for concurrent running of commands so all operations
-// must be queue and performed serially.
-final class HomebrewOperationQueue {
-  /// The serial queue for running Homebrew commands.
-  private static let queue: OperationQueue = {
-    let queue = OperationQueue()
-    queue.name = "Homebrew Command Queue"
-    queue.maxConcurrentOperationCount = 1
-    return queue
-  }()
-
-  private let operationSubject = PassthroughSubject<HomebrewOperation, Never>()
-
+actor HomebrewOperationQueue {
   private let configuration: HomebrewConfiguration
-  private let now: () -> Date
 
-  init(configuration: HomebrewConfiguration = .default, now: @escaping () -> Date = Date.init) {
+  init(configuration: HomebrewConfiguration = .default) {
     self.configuration = configuration
-    self.now = now
   }
 
-  deinit {
-    Self.queue.cancelAllOperations()
-  }
-
-  /// A messsage center style publisher which emits new Homebrew operations and status
-  /// changes as they occur.
-  var operationPublisher: some Publisher<HomebrewOperation, Never> {
-    operationSubject
-  }
-
-  /// Runs a Homebrew command and returns the result of running the command, optionally
-  /// completing with an error if the operation is cancelled.
-  func run(_ command: HomebrewCommand) -> some Publisher<ProcessResult, Error> {
-    let id = HomebrewOperation.ID()
-    return operationSubject
-      .tryCompactMap { operation in
-        guard operation.id == id else {
-          return nil
-        }
-        switch operation.status {
-        case .completed(let result): return result
-        case .cancelled: throw HomebrewCancellationError(id: id)
-        case .queued, .running: return nil
-        }
-      }
-      .first()
-      .handleEvents(
-        receiveSubscription: { [weak self] _ in
-          self?.enqueue(id: id, command: command)
-        },
-        receiveCancel: { [weak self] in
-          self?.cancel(id: id)
-        }
-      )
-  }
-
-  @discardableResult
-  func enqueue(_ command: HomebrewCommand) -> HomebrewOperation.ID {
-    let id = HomebrewOperation.ID()
-    enqueue(id: id, command: command)
-    return id
-  }
-
-  func cancel(id: HomebrewOperation.ID) {
-    if let process = Self.queue.operations.first(where: { ($0 as? ProcessOperation)?.id == id }) {
-      process.cancel()
-    }
-  }
-
-  private func enqueue(id: HomebrewOperation.ID, command: HomebrewCommand) {
-    // Prevent queuing of identical pending commands.
-    if Self.queue.operations.contains(where: { ($0 as? ProcessOperation)?.id == id }) {
-      return
-    }
-
-    let operation = HomebrewOperation(id: id, command: command, started: now(), status: .queued)
-
-    operationSubject.send(operation)
-
-    Self.queue.addOperation(
-      ProcessOperation(
-        id: operation.id,
-        url: URL(fileURLWithPath: configuration.executablePath),
-        arguments: operation.command.arguments,
-        startHandler: { [operationSubject] in
-          var operation = operation
-          operation.status = .running
-          operationSubject.send(operation)
-        },
-        cancellationHandler: { [operationSubject] in
-          var operation = operation
-          operation.status = .cancelled
-          operationSubject.send(operation)
-        },
-        completionHandler: {  [operationSubject] result in
-          var operation = operation
-          operation.status = .completed(result)
-          operationSubject.send(operation)
-        }
-      )
+  /// Runs a Homebrew command and returns the result of running the command.
+  func run(_ command: HomebrewCommand) async throws -> ProcessResult {
+    try await Process.run(
+      for: URL(fileURLWithPath: configuration.executablePath),
+      arguments: command.arguments
     )
-  }
-}
-
-private struct HomebrewCancellationError: LocalizedError {
-  let id: HomebrewOperation.ID
-
-  var errorDescription: String {
-    "Cancelled running command: \(id)"
   }
 }

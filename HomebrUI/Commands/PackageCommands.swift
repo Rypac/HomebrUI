@@ -18,7 +18,9 @@ private struct PackageCommandsContent: View {
   var body: some View {
     Section {
       Button("Refresh") {
-        repository.refresh()
+        Task {
+          await repository.refresh()
+        }
       }
       .keyboardShortcut("r", modifiers: .command)
       Button("Update") {
