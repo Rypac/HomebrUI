@@ -8,11 +8,11 @@ struct Homebrew {
     queue = HomebrewOperationQueue(configuration: configuration)
   }
 
-  var operationPublisher: AnyPublisher<HomebrewOperation, Never> {
+  var operationPublisher: some Publisher<HomebrewOperation, Never> {
     queue.operationPublisher
   }
 
-  func installedPackages() -> AnyPublisher<HomebrewInfo, Error> {
+  func installedPackages() -> some Publisher<HomebrewInfo, Error> {
     queue.run(.list)
       .tryMap { result in
         guard result.status == 0 else {
@@ -20,10 +20,9 @@ struct Homebrew {
         }
         return try JSONDecoder().decode(HomebrewInfo.self, from: result.standardOutput)
       }
-      .eraseToAnyPublisher()
   }
 
-  func search(for query: String) -> AnyPublisher<HomebrewSearchInfo, Error> {
+  func search(for query: String) -> some Publisher<HomebrewSearchInfo, Error> {
     queue.run(.search(query))
       .tryMap { result in
         guard result.status == 0 else {
@@ -56,7 +55,6 @@ struct Homebrew {
             }
           }
       }
-      .eraseToAnyPublisher()
   }
 
   func info(for packages: [HomebrewID]) -> AnyPublisher<HomebrewInfo, Error> {
@@ -74,7 +72,7 @@ struct Homebrew {
       .eraseToAnyPublisher()
   }
 
-  func installFormulae(ids: [HomebrewID]) -> AnyPublisher<String, Error> {
+  func installFormulae(ids: [HomebrewID]) -> some Publisher<String, Error> {
     queue.run(.install(ids))
       .tryMap { result in
         guard result.status == 0 else {
@@ -82,10 +80,9 @@ struct Homebrew {
         }
         return String(decoding: result.standardOutput, as: UTF8.self)
       }
-      .eraseToAnyPublisher()
   }
 
-  func uninstallFormulae(ids: [HomebrewID]) -> AnyPublisher<String, Error> {
+  func uninstallFormulae(ids: [HomebrewID]) -> some Publisher<String, Error> {
     queue.run(.uninstall(ids))
       .tryMap { result in
         guard result.status == 0 else {
@@ -93,7 +90,6 @@ struct Homebrew {
         }
         return String(decoding: result.standardOutput, as: UTF8.self)
       }
-      .eraseToAnyPublisher()
   }
 }
 

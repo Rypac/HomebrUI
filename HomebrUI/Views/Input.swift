@@ -17,7 +17,7 @@ public struct Input<Value> {
     set { subject.send(newValue) }
   }
 
-  public var projectedValue: AnyPublisher<Value, Never> {
-    subject.eraseToAnyPublisher()
+  public var projectedValue: some Subject<Value, Never> {
+    subject
   }
 }

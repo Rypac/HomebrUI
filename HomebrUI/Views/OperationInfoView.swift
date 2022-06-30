@@ -3,10 +3,6 @@ import Foundation
 import SwiftUI
 
 final class OperationInfoViewModel: ObservableObject {
-  struct Environment {
-    var operations: AnyPublisher<[HomebrewOperation], Never>
-  }
-
   struct Operation: Identifiable {
     let id: HomebrewOperation.ID
     let name: String
@@ -15,8 +11,8 @@ final class OperationInfoViewModel: ObservableObject {
 
   @Published private(set) var operations: [Operation] = []
 
-  init(environment: Environment) {
-    environment.operations
+  init(operations: some Publisher<[HomebrewOperation], Never>) {
+    operations
       .map { operations in
         operations.map(Operation.init)
       }

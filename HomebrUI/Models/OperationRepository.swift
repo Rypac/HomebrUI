@@ -32,7 +32,7 @@ final class OperationRepository {
 }
 
 extension OperationRepository {
-  var operations: AnyPublisher<[HomebrewOperation], Never> {
-    accumulatedOperations.eraseToAnyPublisher()
+  var operations: some Publisher<[HomebrewOperation], Never> {
+    accumulatedOperations
   }
 }

@@ -6,9 +6,9 @@ struct ToolbarView: ToolbarContent {
 
   @Binding var isInfoPopoverPresented: Bool
 
-  init(operations: AnyPublisher<[HomebrewOperation], Never>, isInfoPopoverPresented: Binding<Bool>) {
+  init(operations: some Publisher<[HomebrewOperation], Never>, isInfoPopoverPresented: Binding<Bool>) {
     self._isInfoPopoverPresented = isInfoPopoverPresented
-    self.operationViewModel = OperationInfoViewModel(environment: .init(operations: operations))
+    self.operationViewModel = OperationInfoViewModel(operations: operations)
   }
 
   var body: some ToolbarContent {

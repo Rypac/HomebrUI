@@ -69,9 +69,9 @@ extension InstalledPackagesViewModel {
   convenience init(repository: PackageRepository) {
     self.init(
       environment: Environment(
-        packages: repository.packages,
-        isRefreshing: repository.refreshing,
-        detail: repository.detail,
+        packages: repository.packages.eraseToAnyPublisher(),
+        isRefreshing: repository.refreshing.eraseToAnyPublisher(),
+        detail: { repository.detail(for: $0).eraseToAnyPublisher() },
         load: repository.refresh,
         install: repository.install,
         uninstall: repository.uninstall

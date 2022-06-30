@@ -88,8 +88,8 @@ extension SearchPackagesViewModel {
   convenience init(repository: PackageRepository) {
     self.init(
       environment: Environment(
-        search: repository.searchForPackage,
-        detail: repository.detail,
+        search: { repository.searchForPackage(withName: $0).eraseToAnyPublisher() },
+        detail: { repository.detail(for: $0).eraseToAnyPublisher() },
         load: repository.refresh,
         install: repository.install,
         uninstall: repository.uninstall

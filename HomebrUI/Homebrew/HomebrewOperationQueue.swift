@@ -44,13 +44,13 @@ final class HomebrewOperationQueue {
 
   /// A messsage center style publisher which emits new Homebrew operations and status
   /// changes as they occur.
-  var operationPublisher: AnyPublisher<HomebrewOperation, Never> {
-    operationSubject.eraseToAnyPublisher()
+  var operationPublisher: some Publisher<HomebrewOperation, Never> {
+    operationSubject
   }
 
   /// Runs a Homebrew command and returns the result of running the command, optionally
   /// completing with an error if the operation is cancelled.
-  func run(_ command: HomebrewCommand) -> AnyPublisher<ProcessResult, Error> {
+  func run(_ command: HomebrewCommand) -> some Publisher<ProcessResult, Error> {
     let id = HomebrewOperation.ID()
     return operationSubject
       .tryCompactMap { operation in
@@ -72,7 +72,6 @@ final class HomebrewOperationQueue {
           self?.cancel(id: id)
         }
       )
-      .eraseToAnyPublisher()
   }
 
   @discardableResult

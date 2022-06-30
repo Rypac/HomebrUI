@@ -172,7 +172,7 @@ final class PackageRepository {
 }
 
 extension PackageRepository {
-  var packages: AnyPublisher<Packages, Never> {
+  var packages: some Publisher<Packages, Never> {
     packageState
       .compactMap { state in
         guard case let .loaded(packages) = state else {
@@ -180,16 +180,14 @@ extension PackageRepository {
         }
         return packages
       }
-      .eraseToAnyPublisher()
   }
 
-  var refreshing: AnyPublisher<Bool, Never> {
+  var refreshing: some Publisher<Bool, Never> {
     refreshState
       .map { $0 == .refreshing }
-      .eraseToAnyPublisher()
   }
 
-  func searchForPackage(withName query: String) -> AnyPublisher<Packages, Error> {
+  func searchForPackage(withName query: String) -> some Publisher<Packages, Error> {
     homebrew.search(for: query)
       .map { [homebrew] result in
         Publishers.Zip(
@@ -214,10 +212,9 @@ extension PackageRepository {
         }
         return packages
       }
-      .eraseToAnyPublisher()
   }
 
-  private var installedVersions: AnyPublisher<[Package.ID: String], Never> {
+  private var installedVersions: some Publisher<[Package.ID: String], Never> {
     packageState
       .map { state in
         guard case let .loaded(packages) = state else {
@@ -232,10 +229,9 @@ extension PackageRepository {
         }
         return packageVersions
       }
-      .eraseToAnyPublisher()
   }
 
-  func detail(for package: Package) -> AnyPublisher<PackageDetail, Error> {
+  func detail(for package: Package) -> some Publisher<PackageDetail, Error> {
     refreshedPackage(id: package.id)
       .prepend(package)
       .removeDuplicates()
@@ -263,10 +259,9 @@ extension PackageRepository {
           .prepend(PackageDetail(package: package, activity: nil))
       }
       .switchToLatest()
-      .eraseToAnyPublisher()
   }
 
-  private func refreshedPackage(id: Package.ID) -> AnyPublisher<Package, Error> {
+  private func refreshedPackage(id: Package.ID) -> some Publisher<Package, Error> {
     let installedPackageVersion = packageState
       .map { state -> String? in
         guard case let .loaded(packages) = state else {
@@ -293,7 +288,6 @@ extension PackageRepository {
           .eraseToAnyPublisher()
       }
       .switchToLatest()
-      .eraseToAnyPublisher()
 
     return Publishers.CombineLatest(refreshedPackage, installedPackageVersion)
       .map { package, version in
@@ -301,7 +295,6 @@ extension PackageRepository {
         package.installedVersion = version
         return package
       }
-      .eraseToAnyPublisher()
   }
 }
 
