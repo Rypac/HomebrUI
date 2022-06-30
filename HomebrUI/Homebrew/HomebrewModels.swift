@@ -43,7 +43,6 @@ struct Formulae: Equatable, Identifiable {
   let revision: Int
   let versionScheme: Int
   let kegOnly: Bool
-  let bottleDisabled: Bool
   let buildDependencies: [String]
   let dependencies: [String]
   let recommendedDependencies: [String]
@@ -93,7 +92,6 @@ extension Formulae: Codable {
     case revision
     case versionScheme = "version_scheme"
     case kegOnly = "keg_only"
-    case bottleDisabled = "bottle_disabled"
     case buildDependencies = "build_dependencies"
     case dependencies
     case recommendedDependencies = "recommended_dependencies"
