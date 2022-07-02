@@ -1,18 +1,6 @@
 import Combine
 import Foundation
 
-struct Packages {
-  var formulae: [Package]
-  var casks: [Package]
-}
-
-extension Packages {
-  var count: Int { formulae.count + casks.count }
-  var isEmpty: Bool { formulae.isEmpty && casks.isEmpty }
-  var hasFormulae: Bool { !formulae.isEmpty }
-  var hasCasks: Bool { !casks.isEmpty }
-}
-
 fileprivate struct ActivityState: Equatable {
   enum Action { case install, uninstall, update }
   enum Status { case started, completed, failed }
@@ -23,16 +11,6 @@ fileprivate struct ActivityState: Equatable {
 }
 
 final class PackageRepository {
-  private enum PackageState {
-    case empty
-    case loaded(Packages)
-  }
-
-  private enum RefreshState {
-    case idle
-    case refreshing
-  }
-
   private enum Action: Equatable {
     case refresh(RefreshStrategy)
     case install(Package.ID)
@@ -44,8 +22,8 @@ final class PackageRepository {
     case only(Package.ID)
   }
 
-  private let packageState = CurrentValueSubject<PackageState, Never>(.empty)
-  private let refreshState = CurrentValueSubject<RefreshState, Never>(.idle)
+  private let packageState = CurrentValueSubject<Packages?, Never>(nil)
+  private let refreshState = CurrentValueSubject<Bool, Never>(false)
   private let activityState = PassthroughSubject<ActivityState, Never>()
   private let actions = PassthroughSubject<Action, Never>()
   private let homebrew: Homebrew
@@ -90,13 +68,13 @@ final class PackageRepository {
 
         case (.uninstall, .completed):
           // Remove locally installed version before refresh occurs.
-          if case var .loaded(packages) = packageState.value {
+          if var packages = packageState.value {
             if let index = packages.formulae.firstIndex(where: { $0.id == state.id }) {
               packages.formulae[index].installedVersion = nil
             } else if let index = packages.casks.firstIndex(where: { $0.id == state.id }) {
               packages.casks[index].installedVersion = nil
             }
-            packageState.send(.loaded(packages))
+            packageState.value = packages
           }
 
           actions.send(.refresh(.installed))
@@ -120,7 +98,7 @@ final class PackageRepository {
 
   @MainActor
   func refresh() async {
-    refreshState.send(.refreshing)
+    refreshState.value = true
 
     let packages: Packages
     do {
@@ -139,8 +117,8 @@ final class PackageRepository {
       packages = Packages(formulae: [], casks: [])
     }
 
-    refreshState.send(.idle)
-    packageState.send(.loaded(packages))
+    refreshState.value = false
+    packageState.value = packages
   }
 
   func refresh(id: Package.ID) {
@@ -175,52 +153,36 @@ private func trackState<OperationResult>(
 extension PackageRepository {
   var packages: some Publisher<Packages, Never> {
     packageState
-      .compactMap { state in
-        guard case let .loaded(packages) = state else {
-          return nil
-        }
-        return packages
-      }
+      .compactMap { $0 }
   }
 
   var refreshing: some Publisher<Bool, Never> {
     refreshState
-      .map { $0 == .refreshing }
   }
 
   func searchForPackage(withName query: String) -> some Publisher<Packages, Error> {
     homebrew.searchPublisher(for: query)
       .combineLatest(installedVersions.setFailureType(to: Error.self))
       .map { info, versions in
-        var packages = Packages(formulae: [], casks: [])
-        for formulae in info.formulae {
-          var package = Package(formulae: formulae)
-          package.installedVersion = versions[formulae.id]
-          packages.formulae.append(package)
-        }
-        for cask in info.casks {
-          var package = Package(cask: cask)
-          package.installedVersion = versions[cask.id]
-          packages.casks.append(package)
-        }
-        return packages
+        Packages(
+          formulae: info.formulae.map { formulae in
+            var package = Package(formulae: formulae)
+            package.installedVersion = versions[formulae.id]
+            return package
+          },
+          casks: info.casks.map { cask in
+            var package = Package(cask: cask)
+            package.installedVersion = versions[cask.id]
+            return package
+          }
+        )
       }
   }
 
   private var installedVersions: some Publisher<[Package.ID: String], Never> {
     packageState
-      .map { state in
-        guard case let .loaded(packages) = state else {
-          return [:]
-        }
-        var packageVersions: [Package.ID: String] = [:]
-        for formulae in packages.formulae {
-          packageVersions[formulae.id] = formulae.installedVersion
-        }
-        for cask in packages.casks {
-          packageVersions[cask.id] = cask.installedVersion
-        }
-        return packageVersions
+      .map { packages in
+        packages?.installedVersions ?? [:]
       }
   }
 
@@ -256,12 +218,8 @@ extension PackageRepository {
 
   private func refreshedPackage(id: Package.ID) -> some Publisher<Package, Error> {
     let installedPackageVersion = packageState
-      .map { state -> String? in
-        guard case let .loaded(packages) = state else {
-          return nil
-        }
-
-        return packages[id]?.installedVersion
+      .map { packages in
+        packages?[id]?.installedVersion
       }
       .setFailureType(to: Error.self)
 
@@ -276,7 +234,8 @@ extension PackageRepository {
         return package
       }
 
-    return Publishers.CombineLatest(refreshedPackage, installedPackageVersion)
+    return refreshedPackage
+      .combineLatest(installedPackageVersion)
       .map { package, version in
         var package = package
         package.installedVersion = version
@@ -315,12 +274,6 @@ private struct MissingPackageError: LocalizedError {
   var errorDescription: String { "Missing package \"\(id)\"" }
 }
 
-private extension Packages {
-  subscript(id: Package.ID) -> Package? {
-    formulae.first(where: { $0.id == id }) ?? casks.first(where: { $0.id == id })
-  }
-}
-
 private extension HomebrewInfo {
   subscript(id: Package.ID) -> Package? {
     if let formulae = formulae.first(where: { $0.id == id }) {
@@ -330,5 +283,18 @@ private extension HomebrewInfo {
       return Package(cask: cask)
     }
     return nil
+  }
+}
+
+private extension Packages {
+  var installedVersions: [Package.ID: String] {
+    var versions = Dictionary<Package.ID, String>(minimumCapacity: count)
+    for formulae in formulae {
+      versions[formulae.id] = formulae.installedVersion
+    }
+    for cask in casks {
+      versions[cask.id] = cask.installedVersion
+    }
+    return versions
   }
 }

@@ -15,6 +15,7 @@
 		9421EF16258AC99000C0EC8B /* HomebrewOperationQueue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9421EF15258AC99000C0EC8B /* HomebrewOperationQueue.swift */; };
 		9421EF19258AE77E00C0EC8B /* HomebrewCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9421EF18258AE77E00C0EC8B /* HomebrewCommand.swift */; };
 		9421EF23258AF77600C0EC8B /* HomebrewConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9421EF22258AF77600C0EC8B /* HomebrewConfiguration.swift */; };
+		9429FB7628716FF5003B13FA /* Packages.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9429FB7528716FF5003B13FA /* Packages.swift */; };
 		9465923E261988990068A50D /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9465923D261988990068A50D /* ContentView.swift */; };
 		94B042962589666B00222EEF /* HomebrUIApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94B042952589666B00222EEF /* HomebrUIApp.swift */; };
 		94B0429A2589666C00222EEF /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 94B042992589666C00222EEF /* Assets.xcassets */; };
@@ -43,6 +44,7 @@
 		9421EF18258AE77E00C0EC8B /* HomebrewCommand.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomebrewCommand.swift; sourceTree = "<group>"; };
 		9421EF22258AF77600C0EC8B /* HomebrewConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomebrewConfiguration.swift; sourceTree = "<group>"; };
 		9421EF2B258B0A8C00C0EC8B /* AppCommands.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppCommands.swift; sourceTree = "<group>"; };
+		9429FB7528716FF5003B13FA /* Packages.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Packages.swift; sourceTree = "<group>"; };
 		9465923D261988990068A50D /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		947218162593384700F4B584 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		94B042922589666B00222EEF /* HomebrUI.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = HomebrUI.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -172,6 +174,7 @@
 				94E4A25B2589C9A500CC1C7D /* Package.swift */,
 				94E4A2492589A3D400CC1C7D /* PackageRepository.swift */,
 				94DB828D258C330F0071F8A8 /* OperationRepository.swift */,
+				9429FB7528716FF5003B13FA /* Packages.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -253,6 +256,7 @@
 				94DB828E258C330F0071F8A8 /* OperationRepository.swift in Sources */,
 				94E4A25C2589C9A500CC1C7D /* Package.swift in Sources */,
 				9421EF23258AF77600C0EC8B /* HomebrewConfiguration.swift in Sources */,
+				9429FB7628716FF5003B13FA /* Packages.swift in Sources */,
 				9409BC3F258C120700A95B9A /* ViewCommands.swift in Sources */,
 				94E4A247258980C400CC1C7D /* HomebrewModels.swift in Sources */,
 				94B042A82589672700222EEF /* Homebrew.swift in Sources */,
