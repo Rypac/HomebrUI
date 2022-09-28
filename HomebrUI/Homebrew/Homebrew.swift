@@ -1,5 +1,5 @@
-import Foundation
 import Combine
+import Foundation
 
 struct Homebrew {
   private let queue: HomebrewOperationQueue
@@ -76,8 +76,8 @@ struct Homebrew {
   }
 }
 
-private extension ProcessResult {
-  func get() throws -> Data {
+extension ProcessResult {
+  fileprivate func get() throws -> Data {
     guard status == 0 else {
       throw HomebrewError(processResult: self)
     }
@@ -95,8 +95,8 @@ private struct HomebrewError: LocalizedError {
   }
 }
 
-private extension HomebrewError {
-  init(processResult result: ProcessResult) {
+extension HomebrewError {
+  fileprivate init(processResult result: ProcessResult) {
     self.init(
       status: result.status,
       output: result.standardError.isEmpty ? result.standardOutput : result.standardError

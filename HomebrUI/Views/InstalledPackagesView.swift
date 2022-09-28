@@ -95,7 +95,7 @@ struct InstalledPackagesView: View {
         Spacer()
       case .loading:
         ProgressView()
-      case let .loaded(packages, isRefreshing):
+      case .loaded(let packages, let isRefreshing):
         PackageFilterView(query: $viewModel.query)
         PackageListView(
           packages: packages,
@@ -147,7 +147,7 @@ private struct PackageListView: View {
           ForEach(packages.formulae, content: packageRow)
         }
       }
-      if packages.hasFormulae && packages.hasCasks {
+      if packages.hasFormulae, packages.hasCasks {
         Divider()
       }
       if packages.hasCasks {

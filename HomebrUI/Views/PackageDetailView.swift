@@ -121,7 +121,7 @@ private struct LoadedPackageDetailView: View {
       }
       Link(package.homepage.absoluteString, destination: package.homepage)
       if let version = package.installedVersion {
-          Text("Installed Version: ") + Text(version).foregroundColor(.secondary)
+        Text("Installed Version: ") + Text(version).foregroundColor(.secondary)
       }
       Text("Latest Version: ") + Text(package.latestVersion).foregroundColor(.secondary)
       Spacer(minLength: 0)

@@ -12,7 +12,7 @@ struct HomebrUIApp: App {
   }
 
   var body: some Scene {
-    WindowGroup  {
+    WindowGroup {
       ContentView(packageRepository: packageRepository, operationRepository: operationRepository)
         .frame(minHeight: 400, idealHeight: 700)
     }

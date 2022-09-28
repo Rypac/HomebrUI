@@ -45,6 +45,6 @@ extension HomebrewCommand {
   }
 }
 
-private func +(_ arguments: [String], ids: [HomebrewID]) -> [String] {
+private func + (_ arguments: [String], ids: [HomebrewID]) -> [String] {
   ids.reduce(into: arguments) { $0.append($1.rawValue) }
 }

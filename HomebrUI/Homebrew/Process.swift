@@ -72,8 +72,8 @@ extension Process {
   private static let processQueue = DispatchQueue(label: "ProcessQueue", attributes: .concurrent)
 }
 
-private extension Pipe {
-  func read(
+extension Pipe {
+  fileprivate func read(
     onDataAvailable: @escaping (Data) -> Void,
     onCompletion: @escaping () -> Void
   ) {

@@ -1,7 +1,7 @@
 import Combine
 import Foundation
 
-fileprivate struct ActivityState: Equatable {
+private struct ActivityState: Equatable {
   enum Action { case install, uninstall, update }
   enum Status { case started, completed, failed }
 
@@ -244,8 +244,8 @@ extension PackageRepository {
   }
 }
 
-private extension Homebrew {
-  func searchAsync(for query: String) async throws -> HomebrewInfo {
+extension Homebrew {
+  private func searchAsync(for query: String) async throws -> HomebrewInfo {
     let searchResult = try await search(for: query)
 
     async let formulaeInfo = info(for: searchResult.formulae)
@@ -254,7 +254,7 @@ private extension Homebrew {
     return try await HomebrewInfo(formulae: formulaeInfo.formulae, casks: casksInfo.casks)
   }
 
-  func searchPublisher(for query: String) -> some Publisher<HomebrewInfo, Error> {
+  fileprivate func searchPublisher(for query: String) -> some Publisher<HomebrewInfo, Error> {
     Deferred {
       Future { promise in
         Task {
@@ -274,8 +274,8 @@ private struct MissingPackageError: LocalizedError {
   var errorDescription: String { "Missing package \"\(id)\"" }
 }
 
-private extension HomebrewInfo {
-  subscript(id: Package.ID) -> Package? {
+extension HomebrewInfo {
+  fileprivate subscript(id: Package.ID) -> Package? {
     if let formulae = formulae.first(where: { $0.id == id }) {
       return Package(formulae: formulae)
     }
@@ -286,9 +286,9 @@ private extension HomebrewInfo {
   }
 }
 
-private extension Packages {
-  var installedVersions: [Package.ID: String] {
-    var versions = Dictionary<Package.ID, String>(minimumCapacity: count)
+extension Packages {
+  fileprivate var installedVersions: [Package.ID: String] {
+    var versions = [Package.ID: String](minimumCapacity: count)
     for formulae in formulae {
       versions[formulae.id] = formulae.installedVersion
     }

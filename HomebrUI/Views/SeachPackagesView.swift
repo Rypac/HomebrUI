@@ -158,7 +158,7 @@ private struct SearchResultsView: View {
           detailViewModel: detailViewModel
         )
       }
-      if results.hasFormulae && results.hasCasks {
+      if results.hasFormulae, results.hasCasks {
         Divider()
       }
       if results.hasCasks {

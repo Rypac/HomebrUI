@@ -40,16 +40,16 @@ struct OperationInfoView: View {
   }
 }
 
-private extension OperationInfoViewModel.Operation {
-  init(operation: HomebrewOperation) {
+extension OperationInfoViewModel.Operation {
+  fileprivate init(operation: HomebrewOperation) {
     id = operation.id
     name = operation.command.name
     status = operation.status.name
   }
 }
 
-private extension HomebrewCommand {
-  var name: String {
+extension HomebrewCommand {
+  fileprivate var name: String {
     switch self {
     case .list: return "Refreshing packages"
     case .info(let package): return "Getting info for \"\(package)\""
@@ -63,8 +63,8 @@ private extension HomebrewCommand {
   }
 }
 
-private extension HomebrewOperation.Status {
-  var name: String {
+extension HomebrewOperation.Status {
+  fileprivate var name: String {
     switch self {
     case .queued: return "Queued"
     case .running: return "Running"
