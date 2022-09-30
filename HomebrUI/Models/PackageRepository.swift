@@ -134,8 +134,8 @@ final class PackageRepository {
   }
 }
 
-private func trackState<OperationResult>(
-  operation: @escaping () async throws -> OperationResult
+private func trackState(
+  operation: @escaping () async throws -> some Any
 ) -> some Publisher<ActivityState.Status, Never> {
   Future { promise in
     Task {
