@@ -1,5 +1,12 @@
---swiftversion 5.7
---indent 2
 --extensionacl on-declarations
+--indent 2
 --patternlet inline
---enable acronyms,blankLinesBetweenImports,blockComments,isEmpty,preferDouble,wrapConditionalBodies
+--swiftversion 5.7
+
+--enable acronyms
+--enable blankLineAfterImports
+--enable blankLinesBetweenImports
+--enable blockComments
+--enable isEmpty
+--enable preferDouble
+--enable wrapConditionalBodies
